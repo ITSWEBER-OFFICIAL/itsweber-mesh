@@ -5,7 +5,7 @@ All notable changes to ITSWEBER Mesh are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.5.1] — 2026-04-29 — First public release
+## [1.5.1] — 2026-04-30 — First public release
 
 This is the first version published on GitHub. The 1.x series before this
 was developed in a private repository; the consolidated history is
@@ -19,9 +19,25 @@ preserved below for reference.
   whether a service appears in the new "Häufig genutzt" home section,
   with a category filter that narrows visible cards.
 - Schema migration v16 → v17 covering both changes (additive, lossless).
+- First-run wizard now switches `auth.mode` to `userPassword` automatically
+  after the admin account is created, so a fresh container is no longer
+  left in `open` mode by default.
+- Pre-save validation in Admin → Auth blocks the OAuth2 mode switch when
+  `MESH_SESSION_SECRET` is missing or shorter than 32 characters,
+  preventing post-restart container lock-outs.
+- Custom-CSS editor: dedicated "Reset" button in the toolbar so a broken
+  rule can be cleared without navigating into the file.
+- Volume-persistence warning in `docker/entrypoint.sh` when `/data` is
+  not on a separate filesystem (silenceable with `MESH_SKIP_VOLUME_CHECK=1`).
+- Documentation guide under `docs/guide/` (29 pages: setup, concepts,
+  integrations one-by-one, operations, troubleshooting).
+- Unraid Community Apps template at `unraid/itsweber-mesh.xml`.
 - Public-release documentation: top-level `README.md` / `README.de.md`,
   `CONTRIBUTING.md`, `SECURITY.md`, GitHub issue templates and CI
-  workflows.
+  workflows (typecheck + tests + Docker run-smoke + GHCR publish).
+- New test suites: 31 additional Vitest cases covering the full schema
+  migration chain v1→v17 and every auth strategy (open / token /
+  userPassword). Total: 8 suites / 73 tests.
 
 ### Changed
 
@@ -29,6 +45,19 @@ preserved below for reference.
   removed during the v17 migration.
 - The home page renders the pinned-services section above the regular
   board grid; the full service launcher moved to its own route.
+- `apps/web/next.config.mjs` — added `jose` and `openid-client` to
+  `serverExternalPackages` for explicit standalone bundling.
+- `docs/ARCHITECTURE.md` regenerated against the live Schema v17.
+
+### Fixed
+
+- **Setup wizard**: clicking "Zum Dashboard" was silently failing because
+  the wizard switched `auth.mode` to `userPassword` immediately after the
+  admin was created, then tried to call admin-only mutations
+  (`updateMeta`, `completeFirstRun`) without an authenticated session.
+  All write operations now run in the still-open mode and the auth
+  switch happens last; a `try`/`catch` surfaces any failure as a toast
+  instead of leaving the button non-responsive.
 
 ### Licensing
 
