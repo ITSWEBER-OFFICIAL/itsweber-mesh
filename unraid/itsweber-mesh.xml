@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<!--
+  ITSWEBER Mesh — Unraid Community Apps Template
+
+  Add this template to Unraid:
+    Apps → Add Container → "Template repositories" → paste the raw URL of
+    this file:
+
+      https://raw.githubusercontent.com/ITSWEBER-OFFICIAL/itsweber-mesh/main/unraid/itsweber-mesh.xml
+
+    Then go to "Add Container", pick "ITSWEBER Mesh" from the dropdown.
+
+  After installing, paste a 32+ char session secret into the
+  MESH_SESSION_SECRET field (generate with:  openssl rand -hex 32 ).
+-->
+<Container version="2">
+  <Name>itsweber-mesh</Name>
+  <Repository>ghcr.io/itsweber-official/itsweber-mesh:latest</Repository>
+  <Registry>https://ghcr.io/itsweber-official/itsweber-mesh</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/ITSWEBER-OFFICIAL/itsweber-mesh/issues</Support>
+  <Project>https://github.com/ITSWEBER-OFFICIAL/itsweber-mesh</Project>
+  <Overview>
+ITSWEBER Mesh is a self-hosted homelab dashboard — services, widgets, server stats,
+smart-home and cameras in one place. Live status from an in-process healthcheck
+scheduler, 19 widget kinds and 14 first-class integrations (Home Assistant,
+AdGuard, UniFi, UniFi Protect, Pi-hole, Glances, Portainer, Frigate, ESPHome,
+Zigbee2MQTT, Uptime Kuma, Speedtest, weather, custom REST). Optional Unraid
+GraphQL socket mount for native server stats. After install open the WebUI;
+the first-run wizard walks you through admin user + theme + integrations.
+  </Overview>
+  <Category>Productivity: Tools: Network:Web Network:Other</Category>
+  <WebUI>http://[IP]:[PORT:3000]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/ITSWEBER-OFFICIAL/itsweber-mesh/main/unraid/itsweber-mesh.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/ITSWEBER-OFFICIAL/itsweber-mesh/main/apps/web/public/logo-mesh-mark.svg</Icon>
+  <ExtraParams>--restart=unless-stopped</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText>Support development on itsweber.de</DonateText>
+  <DonateLink>https://itsweber.de</DonateLink>
+  <Requires/>
+
+  <!-- ────────────────────────────────────────────────────────────────────
+       Configurable fields (kept minimal for Unraid Apps "Edit" simplicity).
+       Most users only need to touch the SESSION SECRET on first install.
+       ──────────────────────────────────────────────────────────────────── -->
+
+  <Config
+    Name="WebUI Port"
+    Target="3000"
+    Default="3000"
+    Mode="tcp"
+    Description="HTTP port the dashboard listens on inside the container. Map to a free host port (default 3000)."
+    Type="Port"
+    Display="always"
+    Required="true"
+    Mask="false">3000</Config>
+
+  <Config
+    Name="Config &amp; Backups Volume"
+    Target="/data"
+    Default="/mnt/user/appdata/itsweber-mesh"
+    Mode="rw"
+    Description="Persistent storage for config.json and schema-migration backups (config.json.pre-vN). Survives container replace and image upgrades."
+    Type="Path"
+    Display="always"
+    Required="true"
+    Mask="false">/mnt/user/appdata/itsweber-mesh</Config>
+
+  <Config
+    Name="MESH_SESSION_SECRET"
+    Target="MESH_SESSION_SECRET"
+    Default=""
+    Mode=""
+    Description="Random 32+ character string used to sign session cookies (HMAC). Generate ONCE with: openssl rand -hex 32 — and KEEP STABLE across container replaces, otherwise all active sessions are invalidated. REQUIRED."
+    Type="Variable"
+    Display="always"
+    Required="true"
+    Mask="true"/>
+
+  <Config
+    Name="DATA_DIR"
+    Target="DATA_DIR"
+    Default="/data"
+    Mode=""
+    Description="Where the dashboard reads/writes its config. Match the volume target above. Advanced users only."
+    Type="Variable"
+    Display="advanced"
+    Required="false"
+    Mask="false">/data</Config>
+
+  <Config
+    Name="PORT"
+    Target="PORT"
+    Default="3000"
+    Mode=""
+    Description="HTTP port inside the container. Match the WebUI port above. Advanced users only."
+    Type="Variable"
+    Display="advanced"
+    Required="false"
+    Mask="false">3000</Config>
+
+  <Config
+    Name="TZ"
+    Target="TZ"
+    Default="Europe/Berlin"
+    Mode=""
+    Description="Timezone for log timestamps and the live clock in the header. e.g. Europe/Berlin, America/New_York, UTC."
+    Type="Variable"
+    Display="always"
+    Required="false"
+    Mask="false">Europe/Berlin</Config>
+
+  <Config
+    Name="Unraid GraphQL Socket (optional)"
+    Target="/var/run/unraid-api.sock"
+    Default="/var/run/unraid-api.sock"
+    Mode="ro"
+    Description="OPTIONAL: read-only mount of the Unraid GraphQL socket. Enables the native Unraid widget (CPU model, array state, container/VM counts) without an HTTP API key. Only available on Unraid 7.x with the unraid-api plugin running. Leave empty if you prefer the HTTP-based GraphQL endpoint instead."
+    Type="Path"
+    Display="advanced"
+    Required="false"
+    Mask="false">/var/run/unraid-api.sock</Config>
+
+</Container>

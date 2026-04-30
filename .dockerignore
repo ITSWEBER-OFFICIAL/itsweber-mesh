@@ -1,0 +1,57 @@
+# Version control
+.git/
+.gitignore
+
+# Dependencies (werden im Docker-Build neu installiert)
+node_modules/
+**/node_modules/
+
+# Build-Artefakte (außer was für Standalone benötigt wird)
+**/.next/cache/
+**/dist/
+**/.turbo/
+
+# Dev-Configs
+.env
+.env.*
+!.env.example
+docker-compose.dev.yml
+
+# Tests
+**/coverage/
+**/playwright-report/
+**/test-results/
+
+# Dokumentation (nicht im Image benötigt)
+docs/
+previews/
+*.md
+!apps/web/README.md
+
+# IDE/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# TypeScript Build-Infos
+**/*.tsbuildinfo
+
+# Lokale Daten
+data/
+backups/
+
+# Internal AI / archive (never copied into image)
+.claude/
+.continue/
+.agents/
+skills/
+skills-lock.json
+CLAUDE.md
+OPUS-BRIEFING.md
+memory/
+**/memory/
+_archive/

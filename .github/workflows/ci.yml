@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Typecheck + Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Next.js types
+        run: pnpm --filter web build
+        env:
+          MESH_SESSION_SECRET: ci-only-not-a-real-secret-just-32-chars-long
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Tests
+        run: pnpm test
+
+      - name: Lint
+        run: pnpm lint
+
+  docker:
+    name: Docker build (smoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build container image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: false
+          tags: itsweber-mesh:ci
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run container health smoke
+        run: |
+          docker run -d --name mesh-ci \
+            -p 3000:3000 \
+            -e MESH_SESSION_SECRET=ci-only-not-a-real-secret-just-32-chars-long \
+            -e DATA_DIR=/data \
+            itsweber-mesh:ci
+          curl --retry 8 --retry-delay 2 --retry-connrefused -fsS \
+            http://localhost:3000/api/health
+          docker stop mesh-ci

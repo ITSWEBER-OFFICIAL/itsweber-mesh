@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ITSWEBER Mesh">
+  <defs>
+    <linearGradient id="hex-frame" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3ba7a7"/>
+      <stop offset="100%" stop-color="#0a2535"/>
+    </linearGradient>
+    <radialGradient id="node-bright" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#b3e8e8"/>
+      <stop offset="60%" stop-color="#7dd4d4"/>
+      <stop offset="100%" stop-color="#3ba7a7"/>
+    </radialGradient>
+    <radialGradient id="center-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7dd4d4" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#7dd4d4" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <polygon points="32,7 53.65,19.5 53.65,44.5 32,57 10.35,44.5 10.35,19.5"
+    fill="none" stroke="url(#hex-frame)" stroke-width="2.5" stroke-linejoin="round"/>
+
+  <g stroke="#236e6e" stroke-width="0.8" opacity="0.9" fill="none">
+    <polygon points="32,18 43.26,24.5 43.26,37.5 32,44 20.74,37.5 20.74,24.5"/>
+    <line x1="32" y1="31" x2="32" y2="18"/>
+    <line x1="32" y1="31" x2="43.26" y2="24.5"/>
+    <line x1="32" y1="31" x2="43.26" y2="37.5"/>
+    <line x1="32" y1="31" x2="32" y2="44"/>
+    <line x1="32" y1="31" x2="20.74" y2="37.5"/>
+    <line x1="32" y1="31" x2="20.74" y2="24.5"/>
+  </g>
+
+  <circle cx="32" cy="31" r="7" fill="url(#center-glow)"/>
+
+  <circle cx="32" cy="18" r="2.4" fill="url(#node-bright)"/>
+  <circle cx="43.26" cy="24.5" r="2.4" fill="url(#node-bright)"/>
+  <circle cx="43.26" cy="37.5" r="2.4" fill="url(#node-bright)"/>
+  <circle cx="32" cy="44" r="2.4" fill="url(#node-bright)"/>
+  <circle cx="20.74" cy="37.5" r="2.4" fill="url(#node-bright)"/>
+  <circle cx="20.74" cy="24.5" r="2.4" fill="url(#node-bright)"/>
+
+  <circle cx="32" cy="31" r="3" fill="#b3e8e8"/>
+  <circle cx="32" cy="31" r="1.6" fill="#ffffff" opacity="0.65"/>
+</svg>

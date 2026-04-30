@@ -1,0 +1,19 @@
+services:
+  mesh:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: deps
+    image: itsweber-mesh:dev
+    container_name: itsweber-mesh-dev
+    command: pnpm --filter web dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/web/src:/app/apps/web/src
+      - ./data:/data
+    environment:
+      - TZ=Europe/Berlin
+      - LOG_LEVEL=debug
+      - DATA_DIR=/data
+      - NODE_ENV=development

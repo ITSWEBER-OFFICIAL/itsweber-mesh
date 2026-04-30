@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="96" height="64" viewBox="0 0 96 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ITSWEBER Mesh">
+  <defs>
+    <linearGradient id="hex-frame-f" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3ba7a7"/>
+      <stop offset="100%" stop-color="#0a2535"/>
+    </linearGradient>
+    <radialGradient id="node-bright-f" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#b3e8e8"/>
+      <stop offset="60%" stop-color="#7dd4d4"/>
+      <stop offset="100%" stop-color="#3ba7a7"/>
+    </radialGradient>
+    <radialGradient id="center-glow-f" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7dd4d4" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#7dd4d4" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="speed-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3ba7a7" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#3ba7a7" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <g stroke="url(#speed-grad)" stroke-width="1.4" stroke-linecap="round" fill="none">
+    <line x1="58" y1="14" x2="78" y2="6"/>
+    <line x1="60" y1="19" x2="82" y2="11"/>
+    <line x1="62" y1="24" x2="86" y2="17"/>
+  </g>
+
+  <polygon points="30,7 51.65,19.5 51.65,44.5 30,57 8.35,44.5 8.35,19.5"
+    fill="none" stroke="url(#hex-frame-f)" stroke-width="2.5" stroke-linejoin="round"/>
+
+  <g stroke="#236e6e" stroke-width="0.8" opacity="0.9" fill="none">
+    <polygon points="30,18 41.26,24.5 41.26,37.5 30,44 18.74,37.5 18.74,24.5"/>
+    <line x1="30" y1="31" x2="30" y2="18"/>
+    <line x1="30" y1="31" x2="41.26" y2="24.5"/>
+    <line x1="30" y1="31" x2="41.26" y2="37.5"/>
+    <line x1="30" y1="31" x2="30" y2="44"/>
+    <line x1="30" y1="31" x2="18.74" y2="37.5"/>
+    <line x1="30" y1="31" x2="18.74" y2="24.5"/>
+  </g>
+
+  <g stroke="#3ba7a7" stroke-width="0.8" opacity="0.85" fill="none">
+    <line x1="51.65" y1="32" x2="62" y2="34"/>
+    <line x1="62" y1="34" x2="68" y2="38"/>
+  </g>
+
+  <circle cx="30" cy="31" r="7" fill="url(#center-glow-f)"/>
+
+  <circle cx="30" cy="18" r="2.4" fill="url(#node-bright-f)"/>
+  <circle cx="41.26" cy="24.5" r="2.4" fill="url(#node-bright-f)"/>
+  <circle cx="41.26" cy="37.5" r="2.4" fill="url(#node-bright-f)"/>
+  <circle cx="30" cy="44" r="2.4" fill="url(#node-bright-f)"/>
+  <circle cx="18.74" cy="37.5" r="2.4" fill="url(#node-bright-f)"/>
+  <circle cx="18.74" cy="24.5" r="2.4" fill="url(#node-bright-f)"/>
+
+  <circle cx="30" cy="31" r="3" fill="#b3e8e8"/>
+  <circle cx="30" cy="31" r="1.6" fill="#ffffff" opacity="0.65"/>
+
+  <circle cx="62" cy="34" r="2.2" fill="url(#node-bright-f)"/>
+  <circle cx="68" cy="38" r="1.8" fill="url(#node-bright-f)"/>
+</svg>

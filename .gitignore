@@ -1,0 +1,85 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+*.tsbuildinfo
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+next-env.d.ts
+
+# Turbo
+.turbo/
+
+# Env (keep .env.example)
+.env
+.env.local
+.env.*.local
+.env.*
+!.env.example
+
+# Live runtime data (never committed)
+data/
+**/data/config.json
+**/data/config.json.pre-v*
+backups/
+
+# Test outputs
+coverage/
+playwright-report/
+test-results/
+.vitest-cache/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker
+docker/secrets/
+
+# Internal AI / working memory (never committed)
+.claude/
+.continue/
+.agents/
+skills/
+skills-lock.json
+CLAUDE.md
+OPUS-BRIEFING.md
+memory/
+**/memory/
+
+# Local archive folder for working artifacts (release-prep, audits, history)
+_archive/
+
+# Internal-only docs that the public repo replaces
+docs/audits/
+docs/release-prep/
+docs/custom-css/
+docs/previews/
+docs/opus-planning-prompt-*.md
+docs/CLAUDE_OPUS_THEME_BRIEF.md
+docs/BRIEFING.md
+
+# Local previews
+previews/
+
+# Workspace files
+*.code-workspace
+
+# Misc
+*.tgz
