@@ -37,10 +37,22 @@ function SetupWizard() {
 
   const stepIdx = STEPS.indexOf(step);
 
+  // Order matters: updateMeta + updateAuth are adminProcedure. We must run
+  // them while auth.mode is still the default "open" (synthetic admin),
+  // before any redirect-on-userPassword check can lock us out. The mode
+  // switch to "userPassword" happens here at the very end so the wizard's
+  // last step still has admin rights to call all three settings mutations.
   async function handleFinish() {
-    await updateMeta.mutateAsync({ locale });
-    await completeFirstRun.mutateAsync();
-    router.push(adminCreated ? "/admin/login" : "/admin");
+    try {
+      await updateMeta.mutateAsync({ locale });
+      await completeFirstRun.mutateAsync();
+      if (adminCreated) {
+        await updateAuth.mutateAsync({ mode: "userPassword" });
+      }
+      router.push(adminCreated ? "/admin/login" : "/admin");
+    } catch (e) {
+      toast.error("Setup konnte nicht abgeschlossen werden", e instanceof Error ? e.message : String(e));
+    }
   }
 
   return (
@@ -71,15 +83,18 @@ function SetupWizard() {
                 password: data.password,
                 role: "admin",
               });
-              await updateAuth.mutateAsync({ mode: "userPassword" });
               setAdminCreated(true);
               setStep("Fertig");
             }}
-            isPending={createUser.isPending || updateAuth.isPending}
+            isPending={createUser.isPending}
           />
         )}
         {step === "Fertig" && (
-          <FinishStep adminCreated={adminCreated} onFinish={handleFinish} isPending={completeFirstRun.isPending || updateMeta.isPending} />
+          <FinishStep
+            adminCreated={adminCreated}
+            onFinish={handleFinish}
+            isPending={completeFirstRun.isPending || updateMeta.isPending || updateAuth.isPending}
+          />
         )}
       </div>
     </div>
