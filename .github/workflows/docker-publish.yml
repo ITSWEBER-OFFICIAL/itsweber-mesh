@@ -41,6 +41,11 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # `flavor: latest=false` disables the metadata-action default that
+          # auto-attaches :latest to every push. We add :latest back only for
+          # stable semver tags below (no `-` in the ref).
+          flavor: |
+            latest=false
           # For semver tags (e.g. refs/tags/v1.5.1):
           #   - v1.5.1            (raw tag)
           #   - 1.5.1             (without v prefix)
