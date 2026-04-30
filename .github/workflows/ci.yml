@@ -75,6 +75,17 @@ jobs:
             -e MESH_SESSION_SECRET=ci-only-not-a-real-secret-just-32-chars-long \
             -e DATA_DIR=/data \
             itsweber-mesh:ci
-          curl --retry 8 --retry-delay 2 --retry-connrefused -fsS \
-            http://localhost:3000/api/health
-          docker stop mesh-ci
+
+          # Container boot takes a few seconds. --retry-all-errors covers
+          # connection-refused, connection-reset and timeouts during the
+          # warm-up window. On final failure dump the container logs so the
+          # cause is visible in the CI output.
+          if ! curl --retry 15 --retry-delay 2 --retry-all-errors -fsS \
+                 http://localhost:3000/api/health; then
+            echo "::group::Container logs (mesh-ci)"
+            docker logs mesh-ci || true
+            echo "::endgroup::"
+            docker rm -f mesh-ci || true
+            exit 1
+          fi
+          docker rm -f mesh-ci
