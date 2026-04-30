@@ -1,0 +1,51 @@
+/*
+  Semantic CSS — bindet primitive Tokens an semantische Variablen.
+  Generiert via build-css.mjs (primitives.css) + per-Theme-Preset.
+  Import-Reihenfolge: primitives.css → preset-{theme}.css → semantic.css
+*/
+
+:root {
+  /* Semantic surface */
+  --color-bg:             var(--bg);
+  --color-surface:        var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-hover:  var(--surface-hover);
+
+  /* Semantic text */
+  --color-fg:    var(--fg);
+  --color-muted: var(--muted);
+  --color-dim:   var(--dim);
+
+  /* Semantic border */
+  --color-border:        var(--border);
+  --color-border-strong: var(--border-strong);
+
+  /* Semantic brand */
+  --color-brand:            var(--brand);
+  --color-brand-hover:      var(--brand-hover);
+  --color-brand-glow:       var(--brand-glow);
+  --color-brand-glow-strong: var(--brand-glow-strong);
+
+  /* Semantic status */
+  --color-ok:    var(--status-ok);
+  --color-warn:  var(--status-warn);
+  --color-error: var(--status-error);
+
+  /* Shadows */
+  --shadow-card: var(--shadow-card, 0 4px 24px rgba(0,0,0,0.40));
+  --shadow-glow: var(--shadow-glow, 0 0 18px rgba(59,167,167,0.45));
+
+  /* Typography */
+  --font-sans:  var(--color-font-sans,  'Geist', system-ui, sans-serif);
+  --font-mono:  var(--color-font-mono,  'Geist Mono', ui-monospace, monospace);
+  --font-brand: var(--color-font-brand, 'Saira', system-ui, sans-serif);
+
+  /* Radii */
+  --radius-sm: var(--color-radius-sm, 6px);
+  --radius-md: var(--color-radius-md, 10px);
+  --radius-lg: var(--color-radius-lg, 16px);
+  --radius-xl: var(--color-radius-xl, 24px);
+
+  /* Transition */
+  --transition: var(--color-transition-default, 200ms cubic-bezier(.4,0,.2,1));
+}

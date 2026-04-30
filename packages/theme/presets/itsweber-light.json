@@ -1,0 +1,25 @@
+{
+  "name": "itsweber-light",
+  "label": "Light (Concept C)",
+  "dataTheme": "light",
+  "vars": {
+    "--bg":             "var(--color-n-50)",
+    "--surface":        "#ffffff",
+    "--surface-raised": "var(--color-n-100)",
+    "--surface-hover":  "var(--color-n-200)",
+    "--border":         "rgba(14, 17, 22, 0.08)",
+    "--border-strong":  "rgba(14, 17, 22, 0.14)",
+    "--fg":             "var(--color-n-900)",
+    "--muted":          "var(--color-n-500)",
+    "--dim":            "var(--color-n-400)",
+    "--brand":          "#0f766e",
+    "--brand-hover":    "#0d6b63",
+    "--brand-glow":     "rgba(15, 118, 110, 0.15)",
+    "--brand-glow-strong": "rgba(15, 118, 110, 0.30)",
+    "--status-ok":      "var(--color-status-green)",
+    "--status-warn":    "var(--color-status-amber)",
+    "--status-error":   "var(--color-status-red)",
+    "--shadow-card":    "0 2px 12px rgba(0,0,0,0.08)",
+    "--shadow-glow":    "0 0 12px rgba(15,118,110,0.30)"
+  }
+}

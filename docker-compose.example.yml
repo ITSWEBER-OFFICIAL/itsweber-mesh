@@ -1,0 +1,35 @@
+services:
+  mesh:
+    image: ghcr.io/itsweber-official/itsweber-mesh:latest
+    container_name: itsweber-mesh
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # Persistent data: config.json, backups, cache
+      - ./data:/data
+
+      # Unraid only: mount the Unix socket for native GraphQL access (no API key needed)
+      # - /var/run/unraid-api.sock:/var/run/unraid-api.sock:ro
+
+    environment:
+      # REQUIRED: JWT signing secret — generate with: openssl rand -hex 32
+      MESH_SESSION_SECRET: "change-me-to-a-32-byte-random-string"
+
+      # RECOMMENDED: set to your actual external URL (used for OIDC callbacks and cookie domain)
+      BASE_URL: "http://192.168.1.100:3000"
+
+      # Timezone — used in log timestamps and the clock widget
+      TZ: "Europe/Berlin"
+
+      # Optional: port inside the container (default: 3000)
+      # PORT: "3000"
+
+      # Optional: persistent data directory (default: /data)
+      # DATA_DIR: "/data"
+
+      # Optional: admin bootstrap token for token-auth mode
+      # ADMIN_TOKEN: "your-secret-token"
+
+      # Optional: log level (debug / info / warn / error)
+      # LOG_LEVEL: "info"

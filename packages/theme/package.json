@@ -1,0 +1,19 @@
+{
+  "name": "@itsweber/theme",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens": "./tokens.json",
+    "./styles/*": "./styles/*",
+    "./dist/*": "./dist/*"
+  },
+  "scripts": {
+    "build": "node scripts/build-css.mjs",
+    "dev": "node scripts/build-css.mjs --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

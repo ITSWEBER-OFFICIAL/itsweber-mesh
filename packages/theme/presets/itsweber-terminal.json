@@ -1,0 +1,25 @@
+{
+  "name": "itsweber-terminal",
+  "label": "Terminal (Concept B)",
+  "dataTheme": "terminal",
+  "vars": {
+    "--bg":             "#0a0d0a",
+    "--surface":        "#0f130f",
+    "--surface-raised": "#141a14",
+    "--surface-hover":  "#1a221a",
+    "--border":         "rgba(63, 185, 80, 0.10)",
+    "--border-strong":  "rgba(63, 185, 80, 0.20)",
+    "--fg":             "#c8ffc8",
+    "--muted":          "#7aab7a",
+    "--dim":            "#4a7a4a",
+    "--brand":          "#3fb950",
+    "--brand-hover":    "#57d468",
+    "--brand-glow":     "rgba(63, 185, 80, 0.20)",
+    "--brand-glow-strong": "rgba(63, 185, 80, 0.40)",
+    "--status-ok":      "#3fb950",
+    "--status-warn":    "#f0b429",
+    "--status-error":   "#d9534f",
+    "--shadow-card":    "0 4px 24px rgba(0,0,0,0.60)",
+    "--shadow-glow":    "0 0 18px rgba(63,185,80,0.40)"
+  }
+}

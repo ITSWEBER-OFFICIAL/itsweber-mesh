@@ -1,0 +1,22 @@
+services:
+  mesh:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: ghcr.io/itsweber-official/itsweber-mesh:${TAG:-latest}
+    container_name: itsweber-mesh
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
+    environment:
+      - TZ=Europe/Berlin
+      - LOG_LEVEL=info
+      - DATA_DIR=/data
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true

@@ -1,0 +1,25 @@
+{
+  "name": "itsweber-dark",
+  "label": "Dark (Default)",
+  "dataTheme": "dark",
+  "vars": {
+    "--bg":             "var(--color-n-900)",
+    "--surface":        "var(--color-n-800)",
+    "--surface-raised": "var(--color-n-700)",
+    "--surface-hover":  "var(--color-n-600)",
+    "--border":         "rgba(230, 237, 243, 0.08)",
+    "--border-strong":  "rgba(230, 237, 243, 0.14)",
+    "--fg":             "var(--color-n-100)",
+    "--muted":          "var(--color-n-300)",
+    "--dim":            "var(--color-n-400)",
+    "--brand":          "var(--color-teal-500)",
+    "--brand-hover":    "var(--color-teal-400)",
+    "--brand-glow":     "var(--color-teal-glow)",
+    "--brand-glow-strong": "var(--color-teal-glow-strong)",
+    "--status-ok":      "var(--color-status-green)",
+    "--status-warn":    "var(--color-status-amber)",
+    "--status-error":   "var(--color-status-red)",
+    "--shadow-card":    "0 4px 24px rgba(0,0,0,0.40)",
+    "--shadow-glow":    "0 0 18px var(--color-teal-glow-strong)"
+  }
+}
