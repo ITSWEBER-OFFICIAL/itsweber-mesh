@@ -3,11 +3,6 @@ export const runtime = "nodejs";
 export async function register() {
   if (process.env["NEXT_RUNTIME"] !== "nodejs") return;
 
-  // ── OIDC bootstrap validation ────────────────────────────────────────────
-  // If auth.mode === "oauth2" we require MESH_SESSION_SECRET to be set with
-  // sufficient entropy AND issuerUrl/clientId to be configured. This refuses
-  // to start the server in misconfigured oauth2 mode rather than silently
-  // falling back to an insecure path.
   const { bootstrapConfigForRuntime } = await import("./server/config/store");
   const { validateSessionSecret } = await import("./server/auth/oidc-session");
   const { logger } = await import("./server/logger");
@@ -35,7 +30,6 @@ export async function register() {
       );
     }
 
-    // Surface migration warnings as logs so operators see them on container start
     if (config.meta.migrationWarnings.length > 0) {
       logger.warn(
         { warnings: config.meta.migrationWarnings },
@@ -43,7 +37,6 @@ export async function register() {
       );
     }
   } catch (err) {
-    // Re-throw; Next.js will print the error and refuse to serve requests.
     throw err;
   }
 
