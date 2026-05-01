@@ -5,6 +5,20 @@ All notable changes to ITSWEBER Mesh are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.2] — 2026-05-01
+
+### Fixed
+
+- **All services showing "unknown" status after fresh install**: `instrumentation.ts`
+  contained an empty `register()` function that silently shadowed the real
+  startup logic in `instrumentation.node.ts`. Next.js 15 only executes
+  `instrumentation.ts`; the `.node.ts` file is ignored unless explicitly
+  called. The fix wires `instrumentation.ts` → `instrumentation.node.ts`
+  via a runtime-guarded dynamic import, so the healthcheck scheduler now
+  starts correctly on every container launch.
+- Added `p-limit` to `serverExternalPackages` in `next.config.mjs` to
+  prevent potential bundling issues in the standalone output.
+
 ## [1.5.1] — 2026-04-30 — First public release
 
 This is the first version published on GitHub. The 1.x series before this

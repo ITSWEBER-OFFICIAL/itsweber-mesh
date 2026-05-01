@@ -8,7 +8,7 @@ const pkg = JSON.parse(readFileSync(join(__dirname, "package.json"), "utf8"));
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
-  serverExternalPackages: ["proper-lockfile", "pino", "bcryptjs", "jose", "openid-client"],
+  serverExternalPackages: ["proper-lockfile", "pino", "bcryptjs", "jose", "openid-client", "p-limit"],
   env: {
     NEXT_PUBLIC_VERSION: pkg.version,
   },
