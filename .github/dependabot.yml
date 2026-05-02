@@ -1,15 +1,35 @@
 version: 2
+
+# Strategy:
+# - Patch + minor updates are bundled into ONE weekly PR per ecosystem
+#   (low-risk, easy to merge in bulk).
+# - Major updates each get their OWN PR so breaking changes can be
+#   evaluated and migrated in isolation.
+# - Security advisories bypass the schedule and always open immediately.
+
 updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 10
     groups:
-      all-dependencies:
+      minor-and-patch:
         patterns:
           - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
