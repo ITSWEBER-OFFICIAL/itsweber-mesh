@@ -10,6 +10,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Opt into Node.js 24 for JS-based GitHub Actions (actions/checkout, setup-node,
+  # pnpm/action-setup) before Node 20 is removed from the runner on 2026-09-16.
+  # See https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   build:
     name: Typecheck + Tests
