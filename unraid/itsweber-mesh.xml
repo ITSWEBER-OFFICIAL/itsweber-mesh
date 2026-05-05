@@ -3,12 +3,12 @@
   ITSWEBER Mesh — Unraid Community Apps Template
 
   Add this template to Unraid:
-    Apps → Add Container → "Template repositories" → paste the raw URL of
+    Docker tab → Add Container → Template field → paste the raw URL of
     this file:
 
       https://raw.githubusercontent.com/ITSWEBER-OFFICIAL/itsweber-mesh/main/unraid/itsweber-mesh.xml
 
-    Then go to "Add Container", pick "ITSWEBER Mesh" from the dropdown.
+    Unraid will auto-fill all fields from this template.
 
   After installing, paste a 32+ char session secret into the
   MESH_SESSION_SECRET field (generate with:  openssl rand -hex 32 ).
@@ -35,7 +35,7 @@ the first-run wizard walks you through admin user + theme + integrations.
   <Category>Productivity: Tools: Network:Web Network:Other</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/ITSWEBER-OFFICIAL/itsweber-mesh/main/unraid/itsweber-mesh.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/ITSWEBER-OFFICIAL/itsweber-mesh/main/apps/web/public/logo-mesh-mark.svg</Icon>
+  <Icon>https://raw.githubusercontent.com/ITSWEBER-OFFICIAL/itsweber-mesh/main/apps/web/public/logo-mesh-mark.png</Icon>
   <ExtraParams>--restart=unless-stopped</ExtraParams>
   <PostArgs/>
   <CPUset/>
