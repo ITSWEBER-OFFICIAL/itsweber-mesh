@@ -25,10 +25,10 @@
     "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-switch": "^1.1.2",
     "@radix-ui/react-tooltip": "^1.1.6",
-    "@tanstack/react-query": "^5.65.1",
-    "@trpc/client": "^11.0.0",
-    "@trpc/react-query": "^11.0.0",
-    "@trpc/server": "^11.0.0",
+    "@tanstack/react-query": "^5.100.10",
+    "@trpc/client": "^11.17.0",
+    "@trpc/react-query": "^11.17.0",
+    "@trpc/server": "^11.17.0",
     "@types/bcryptjs": "^3.0.0",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.3",
@@ -38,17 +38,17 @@
     "p-limit": "^6.1.0",
     "pino": "^9.6.0",
     "proper-lockfile": "^4.1.2",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "react-grid-layout": "^2.2.3",
-    "react-hook-form": "^7.54.2",
+    "react-hook-form": "^7.75.0",
     "react-resizable": "^3.0.5",
     "superjson": "^2.2.1",
     "uuid": "^11.0.5",
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.0.6",
+    "@tailwindcss/postcss": "^4.3.0",
     "@types/node": "^22.10.7",
     "@types/proper-lockfile": "^4.1.4",
     "@types/react": "^19.0.7",
@@ -59,8 +59,8 @@
     "eslint": "^9.19.0",
     "eslint-config-next": "^15.1.7",
     "pino-pretty": "^13.0.0",
-    "tailwindcss": "^4.0.6",
+    "tailwindcss": "^4.3.0",
     "typescript": "^5.7.3",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.6"
   }
 }
