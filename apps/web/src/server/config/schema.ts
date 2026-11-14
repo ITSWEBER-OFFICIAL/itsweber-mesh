@@ -498,6 +498,8 @@ export const ConfigSchema = z.object({
         statusPageSlug: z.string().optional(),
       })
       .default({}),
+    /** Mesh 2.0: public status API of the game servers (GET <statusUrl>/v1/status). */
+    gameserver: z.object({ statusUrl: z.string().optional() }).default({}),
     pihole: z
       .array(
         z.object({

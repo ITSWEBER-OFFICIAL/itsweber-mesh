@@ -223,8 +223,8 @@ export function MehrView() {
     <Screen title="Mehr" small context={settings?.meta.name}>
       <section className="m-sec">
         <h2 className="m-h">Web und Gaming</h2>
-        <MoreLink href="/services?cat=web" title="Webseiten" sub={`${count("web")} Seiten, Version und Antwortzeit folgen mit Phase 2`} />
-        <MoreLink href="/services?cat=gaming" title="Gameserver" sub={`${count("gaming")} Einträge, Spielerzahlen folgen mit Phase 2`} />
+        <MoreLink href="/mehr/web" title="Webseiten" sub={`${count("web")} Seiten mit Antwortzeit und Zertifikat`} />
+        <MoreLink href="/mehr/gaming" title="Gameserver" sub="Server, Spieler und Dienste rund ums Spielen" />
       </section>
 
       <section className="m-sec" style={{ gap: 8 }}>
@@ -248,14 +248,7 @@ export function MehrView() {
         <h2 className="m-h">Verwaltung</h2>
         <MoreLink href="/admin" title="Verwaltung von Mesh" sub="Dienste, Schnittstellen, Anmeldung, Sicherung" />
         <MoreLink href="/boards/home" title="Widget-Board" sub="Die bisherige Übersicht mit allen Widgets" />
-        <div className="m-row">
-          <div className="m-row-link">
-            <span>
-              <b style={{ color: "var(--m-ink3)" }}>Protokoll</b>
-              <small style={{ fontFamily: "var(--m-f)", fontSize: 12.5 }}>Kommt mit den Aktionen in Phase 3</small>
-            </span>
-          </div>
-        </div>
+        <MoreLink href="/mehr/protokoll" title="Protokoll" sub="Wer hat wann was gestartet oder gestoppt" />
       </section>
 
       <section className="m-sec" style={{ gap: 10 }}>

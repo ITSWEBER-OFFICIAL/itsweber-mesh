@@ -290,6 +290,7 @@ export const defaultConfig: Config = {
   ],
   integrations: {
     unraid: [],
+    gameserver: {},
     homeAssistant: {},
     adguard: {},
     unifi: {
