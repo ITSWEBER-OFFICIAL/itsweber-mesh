@@ -5,6 +5,14 @@ All notable changes to ITSWEBER Mesh are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-beta.4] — 2026-11-14
+
+### Added
+
+- Network map in the server view: internet, gateway, servers and devices with their state, tap a node to jump to it. UniFi and AdGuard at a glance below.
+- Updates from Mesh for admins: containers for which Unraid reports a newer image, and pending Home Assistant updates. Both are checked against the live state first, confirmed in a dialog and logged, long updates report their real end in the action log.
+- Hint for container updates per server.
+
 ## [2.0.0-beta.3] — 2026-11-14
 
 Mesh 2.0, phases 2 and 3.

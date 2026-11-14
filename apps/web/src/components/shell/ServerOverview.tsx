@@ -10,7 +10,7 @@ import type { UnifiWidgetData } from "@/app/api/widgets/unifi/route";
 import type { AdguardWidgetData } from "@/app/api/widgets/adguard/route";
 import { Screen, Dot } from "./AppShell";
 import { useHints } from "./useHints";
-import { layoutNetMap, type MapNode, type NodeState } from "@/lib/net-map";
+import { layoutNetMap, shortLabel, type MapNode, type NodeState } from "@/lib/net-map";
 
 const getJson = <T,>(url: string, empty: T) => (): Promise<T> =>
   fetch(url).then((r) => (r.ok ? (r.json() as Promise<T>) : empty));
@@ -107,11 +107,11 @@ export function ServerView() {
   const gatewayState: NodeState = !unifi?.configured ? "unknown" : unifi.online ? "ok" : "bad";
   const mapNodes: MapNode[] = [
     { key: "gateway", label: unifi?.stats?.gateway?.name ?? "Netzwerk", short: "Netz", state: gatewayState, role: "gateway" },
-    ...enabled.map((n) => ({ key: `server-${n.id}`, label: n.label, short: n.label.slice(0, 8), state: serverState(n), role: "server" as const })),
+    ...enabled.map((n) => ({ key: `server-${n.id}`, label: n.label, short: shortLabel(n.label), state: serverState(n), role: "server" as const })),
     ...devices.map((d) => ({
       key: `device-${d.id}`,
       label: d.label,
-      short: d.label.slice(0, 8),
+      short: shortLabel(d.label),
       state: (d.status === "online" ? "ok" : d.status === "offline" ? "bad" : "unknown") as NodeState,
       role: "device" as const,
     })),

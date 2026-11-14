@@ -8,6 +8,14 @@ export type PlacedNode = MapNode & { x: number; y: number; r: number };
 export type MapLine = { from: string; to: string; x1: number; y1: number; x2: number; y2: number };
 
 export const MAP_WIDTH = 340;
+
+/** Label under a node. Short names stay whole, long ones keep their first word. */
+export function shortLabel(label: string): string {
+  const clean = label.trim();
+  if (clean.length <= 9) return clean;
+  const first = clean.split(/[\s\-_.]/)[0] ?? clean;
+  return first.length >= 2 ? first.slice(0, 9) : clean.slice(0, 9);
+}
 const MARGIN = 34;
 const PER_ROW = { server: 4, device: 5 } as const;
 

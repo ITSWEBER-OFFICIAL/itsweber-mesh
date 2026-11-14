@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { layoutNetMap, spread, MAP_WIDTH, type MapNode } from "@/lib/net-map";
+import { layoutNetMap, shortLabel, spread, MAP_WIDTH, type MapNode } from "@/lib/net-map";
 
 const node = (key: string, role: MapNode["role"]): MapNode => ({ key, label: key, short: key, state: "ok", role });
 
@@ -41,5 +41,14 @@ describe("net map layout", () => {
     expect(spread(1, 0)).toBe(MAP_WIDTH / 2);
     expect(spread(3, 1)).toBe(MAP_WIDTH / 2);
     expect(spread(2, 0)).toBeLessThan(spread(2, 1));
+  });
+});
+
+describe("net map labels", () => {
+  it("keeps short names and cuts long ones at the first word", () => {
+    expect(shortLabel("Core")).toBe("Core");
+    expect(shortLabel("UDM Pro")).toBe("UDM Pro");
+    expect(shortLabel("AdGuard-Pi Keller")).toBe("AdGuard");
+    expect(shortLabel("Wohnzimmerswitch")).toBe("Wohnzimme");
   });
 });

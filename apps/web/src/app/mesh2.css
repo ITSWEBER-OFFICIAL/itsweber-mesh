@@ -284,3 +284,20 @@ a.m-chip { text-decoration: none; }
 .m-form input { min-height: 46px; padding: 0 14px; font: 16px var(--m-f); color: var(--m-ink); background: var(--m-paper); border: 1px solid var(--m-line2); border-radius: 14px; }
 .m-form small { font-size: 12.5px; color: var(--m-ink3); }
 .m-form .m-act { margin-top: 6px; }
+
+/* ── Netzplan ────────────────────────────────────────────────────────────── */
+.m-map { display: block; width: 100%; max-width: 380px; margin: 4px auto 0; height: auto; overflow: visible; }
+.m-map line { stroke: var(--m-head-line2); stroke-width: 1.2; }
+.m-map .nd { cursor: pointer; outline: none; }
+.m-map .nd .s { fill: none; stroke: transparent; stroke-width: 2; transition: stroke .15s ease-out; }
+.m-map .nd.sel .s, .m-map .nd:focus-visible .s { stroke: var(--m-on-head); }
+.m-map .nd .b { fill: var(--m-h-ok); }
+.m-map .nd.warn .b { fill: var(--m-h-warn); }
+.m-map .nd.bad .b { fill: var(--m-h-bad); }
+.m-map .nd.unknown .b { fill: none; stroke: var(--m-head-line2); stroke-width: 1.6; }
+.m-map text { font: 11px var(--m-f-mono); fill: var(--m-on-head); text-anchor: middle; pointer-events: none; }
+.m-map text.in { fill: var(--m-on-acc); font-weight: 700; font-size: 10px; }
+.m-map .nd.unknown text.in { fill: var(--m-on-head); }
+.m-sheet.sel { border-color: var(--m-acc); }
+.m-row.sel b { color: var(--m-acc); }
+@media (prefers-reduced-motion: reduce) { .m-map .nd .s { transition: none; } }
