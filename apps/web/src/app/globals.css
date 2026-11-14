@@ -1,5 +1,4 @@
-/* Marken-Fonts — itsweber: Open Sans + JetBrains Mono · graphite-command: IBM Plex + Saira */
-@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Saira:wght@500;700;800&display=swap");
+/* v18: nur Systemschrift, kein Fremdabruf */
 @import "tailwindcss";
 
 /* ── ITSWEBER Mesh — Primitive Tokens ──────────────────────────────────── */
@@ -118,9 +117,9 @@
 
 /* ── Tailwind Theme Mapping ─────────────────────────────────────────────── */
 @theme {
-  --font-sans:  var(--font-geist-sans, "Geist", system-ui, sans-serif);
-  --font-mono:  var(--font-geist-mono, "Geist Mono", ui-monospace, monospace);
-  --font-brand: var(--font-saira, "Saira", system-ui, sans-serif);
+  --font-sans:  "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:  ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  --font-brand: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
 }
 
 /* ── Base Reset ─────────────────────────────────────────────────────────── */

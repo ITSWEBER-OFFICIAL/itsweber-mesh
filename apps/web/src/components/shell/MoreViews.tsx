@@ -1,0 +1,246 @@
+"use client";
+
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { trpc } from "@/lib/trpc-client";
+import { useToast } from "@/components/ui/Toast";
+import type { UnraidWidgetData } from "@/app/api/widgets/unraid/route";
+import type { NetworkWidgetData } from "@/app/api/widgets/network/route";
+import { Screen, Dot, Icon } from "./AppShell";
+import { DownList } from "./DownList";
+import { useMeshData } from "./useMeshData";
+
+const getJson = <T,>(url: string, empty: T) => (): Promise<T> =>
+  fetch(url).then((r) => (r.ok ? (r.json() as Promise<T>) : empty));
+
+/* ── Server (Phase 1: Geräte mit Kernwerten, Netzplan folgt in Phase 2) ──── */
+export function ServerView() {
+  const { data: nodes = [] } = trpc.infraNodes.list.useQuery();
+  const { data: unraid } = useQuery({
+    queryKey: ["widget-unraid"],
+    queryFn: getJson<UnraidWidgetData>("/api/widgets/unraid", { instances: [] }),
+    refetchInterval: 30_000,
+  });
+  const { data: network } = useQuery({
+    queryKey: ["widget-network"],
+    queryFn: getJson<NetworkWidgetData>("/api/widgets/network", { entries: [] }),
+    refetchInterval: 30_000,
+  });
+
+  const enabled = nodes.filter((n) => n.enabled);
+  const devices = network?.entries ?? [];
+
+  return (
+    <Screen title="Server" small context={`${enabled.length + devices.length} Geräte`}>
+      <section className="m-sec">
+        <h2 className="m-h">Server · {enabled.length}</h2>
+        {enabled.length === 0 && <p className="m-note">Noch keine Server angelegt.</p>}
+        <div className="m-sheets">
+          {enabled.map((node) => {
+            const inst = unraid?.instances.find((i) => i.id === node.integrationRef?.id);
+            const data = inst?.online ? inst.data : undefined;
+            const state = !node.integrationRef ? "unknown" : data ? "ok" : inst ? "bad" : "unknown";
+            const cap = data?.array?.capacity;
+            return (
+              <article className="m-sheet" key={node.id}>
+                <h3>
+                  <Dot state={state} />
+                  {node.label}
+                  <small>{data?.unraidVersion ? `Unraid ${data.unraidVersion}` : node.versionOverride ?? node.ip ?? ""}</small>
+                </h3>
+                {data ? (
+                  <div className="m-kv">
+                    <div>
+                      <b>{cap ? `${Math.round(cap.percent)} %` : "–"}</b>
+                      <span>Array</span>
+                    </div>
+                    <div>
+                      <b>{data.containers ? `${data.containers.running}/${data.containers.total}` : "–"}</b>
+                      <span>Container</span>
+                    </div>
+                    <div>
+                      <b>{data.vms ? `${data.vms.running}/${data.vms.total}` : "–"}</b>
+                      <span>VMs</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="m-note">
+                    {state === "bad" ? "Die Schnittstelle antwortet nicht." : "Keine Live-Werte, es ist keine Schnittstelle verknüpft."}
+                  </p>
+                )}
+                {node.linkUrl && (
+                  <div className="m-act">
+                    <a className="m-btn p" href={node.linkUrl} target="_blank" rel="noopener noreferrer">
+                      Oberfläche
+                    </a>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      {devices.length > 0 && (
+        <section className="m-sec">
+          <h2 className="m-h">Netzwerk · {devices.length}</h2>
+          {devices.map((d) => {
+            const state = d.status === "online" ? "ok" : d.status === "offline" ? "bad" : "unknown";
+            const inner = (
+              <>
+                <Dot state={state} />
+                <span>
+                  <b>{d.label}</b>
+                  {d.sub && <small>{d.sub}</small>}
+                </span>
+              </>
+            );
+            return (
+              <div className="m-row" key={d.id}>
+                {d.url ? (
+                  <a className="m-row-link" href={d.url} target="_blank" rel="noopener noreferrer">
+                    {inner}
+                  </a>
+                ) : (
+                  <div className="m-row-link">{inner}</div>
+                )}
+                {typeof d.latencyMs === "number" && <span className="m-tag">{d.latencyMs} ms</span>}
+              </div>
+            );
+          })}
+        </section>
+      )}
+    </Screen>
+  );
+}
+
+/* ── Hinweise (Phase 1: Störungen, „Im Blick“ folgt mit Phase 2) ─────────── */
+export function HinweiseView() {
+  const { down, pings, loading } = useMeshData();
+  return (
+    <Screen title="Hinweise" small context={loading ? undefined : `${down.length} offen`}>
+      <section className="m-sec">
+        <h2 className="m-h">Dringend · {down.length}</h2>
+        {down.length === 0 ? (
+          <div className="m-msg">
+            <Dot state="ok" />
+            <div>
+              <b>Nichts Dringendes</b>
+              <small>Alle geprüften Dienste antworten</small>
+            </div>
+          </div>
+        ) : (
+          <DownList services={down} pings={pings} />
+        )}
+      </section>
+      <section className="m-sec">
+        <h2 className="m-h">Im Blick</h2>
+        <p className="m-note">Updates, Platten, Zertifikate und Unraid-Warnungen erscheinen hier mit Phase 2.</p>
+      </section>
+    </Screen>
+  );
+}
+
+/* ── Mehr ────────────────────────────────────────────────────────────────── */
+const THEMES = [
+  { value: "system", label: "Gerät" },
+  { value: "light", label: "Hell" },
+  { value: "dark", label: "Dunkel" },
+] as const;
+
+function MoreLink({ href, title, sub, external }: { href: string; title: string; sub: string; external?: boolean }) {
+  const inner = (
+    <>
+      <span>
+        <b>{title}</b>
+        <small style={{ fontFamily: "var(--m-f)", fontSize: 12.5 }}>{sub}</small>
+      </span>
+    </>
+  );
+  return (
+    <div className="m-row">
+      {external ? (
+        <a className="m-row-link" href={href}>{inner}</a>
+      ) : (
+        <Link className="m-row-link" href={href}>{inner}</Link>
+      )}
+      <span className="m-chev"><Icon name="pfeil" /></span>
+    </div>
+  );
+}
+
+export function MehrView() {
+  const { overview } = useMeshData();
+  const { data: settings } = trpc.settings.get.useQuery();
+  const utils = trpc.useUtils();
+  const toast = useToast();
+  const updateTheme = trpc.settings.updateTheme.useMutation({
+    onSuccess: () => { utils.settings.get.invalidate(); toast.success("Thema übernommen"); },
+    onError: (e) => toast.error("Thema nicht gespeichert", e.message),
+  });
+  const count = (c: "web" | "gaming") => overview.segments.find((s) => s.category === c)?.total ?? 0;
+  const oauth = settings?.auth.mode === "oauth2";
+
+  async function logout() {
+    if (oauth) {
+      window.location.href = "/api/auth/oidc/logout";
+      return;
+    }
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      window.location.href = "/";
+    } catch {
+      toast.error("Abmelden fehlgeschlagen");
+    }
+  }
+
+  return (
+    <Screen title="Mehr" small context={settings?.meta.name}>
+      <section className="m-sec">
+        <h2 className="m-h">Web und Gaming</h2>
+        <MoreLink href="/services?cat=web" title="Webseiten" sub={`${count("web")} Seiten, Version und Antwortzeit folgen mit Phase 2`} />
+        <MoreLink href="/services?cat=gaming" title="Gameserver" sub={`${count("gaming")} Einträge, Spielerzahlen folgen mit Phase 2`} />
+      </section>
+
+      <section className="m-sec" style={{ gap: 8 }}>
+        <h2 className="m-h">Thema</h2>
+        <div className="m-switch" role="group" aria-label="Thema">
+          {THEMES.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              aria-pressed={settings?.theme.preset === t.value}
+              disabled={updateTheme.isPending}
+              onClick={() => updateTheme.mutate({ preset: t.value })}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="m-sec">
+        <h2 className="m-h">Verwaltung</h2>
+        <MoreLink href="/admin" title="Verwaltung von Mesh" sub="Dienste, Schnittstellen, Anmeldung, Sicherung" />
+        <MoreLink href="/boards/home" title="Widget-Board" sub="Die bisherige Übersicht mit allen Widgets" />
+        <div className="m-row">
+          <div className="m-row-link">
+            <span>
+              <b style={{ color: "var(--m-ink3)" }}>Protokoll</b>
+              <small style={{ fontFamily: "var(--m-f)", fontSize: 12.5 }}>Kommt mit den Aktionen in Phase 3</small>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section className="m-sec" style={{ gap: 10 }}>
+        {settings && settings.auth.mode !== "open" && (
+          <button type="button" className="m-btn" style={{ alignSelf: "flex-start" }} onClick={logout}>
+            Abmelden
+          </button>
+        )}
+        <p className="m-foot">MESH {process.env["NEXT_PUBLIC_VERSION"]}</p>
+      </section>
+    </Screen>
+  );
+}

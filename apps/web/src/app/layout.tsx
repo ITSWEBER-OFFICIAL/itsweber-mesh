@@ -1,26 +1,17 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono, Saira } from "next/font/google";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./mesh2.css";
 import { readConfigForBuild } from "@/server/config/store";
 
-const geist = Geist({
-  variable: "--font-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const saira = Saira({
-  variable: "--font-brand",
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  display: "swap",
-});
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#0f2230" },
+    { media: "(prefers-color-scheme: dark)", color: "#102633" },
+  ],
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -91,7 +82,6 @@ export default function RootLayout({
         <style id="user-custom-css" dangerouslySetInnerHTML={{ __html: customCss }} />
       </head>
       <body
-        className={`${geist.variable} ${geistMono.variable} ${saira.variable}`}
         style={bgImageSrc ? {
           backgroundImage: `url(${JSON.stringify(bgImageSrc)})`,
           backgroundSize: "cover",
