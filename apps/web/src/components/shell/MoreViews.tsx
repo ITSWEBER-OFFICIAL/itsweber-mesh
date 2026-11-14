@@ -156,7 +156,7 @@ export function HinweiseView() {
         ) : hints.watch.length === 0 ? (
           <p className="m-note">Keine Updates, keine gestoppten Container, kein Zertifikat läuft bald ab.</p>
         ) : (
-          <HintList hints={hints.watch} />
+          <HintList hints={hints.watch} actions />
         )}
         {hints.notes.map((n) => (
           <p className="m-note" key={n}>{n}</p>

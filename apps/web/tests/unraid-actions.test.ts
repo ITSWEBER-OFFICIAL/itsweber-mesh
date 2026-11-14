@@ -14,9 +14,9 @@ import {
 import { readAudit, writeAudit } from "@/server/audit";
 
 const containers = [
-  { id: "h:aaa", name: "frigate", running: true, state: "RUNNING", status: "Up", autoStart: true },
-  { id: "h:bbb", name: "tdarr", running: false, state: "EXITED", status: "Exited", autoStart: false },
-  { id: "h:ccc", name: "ITSWEBER-Mesh", running: true, state: "RUNNING", status: "Up", autoStart: true },
+  { id: "h:aaa", name: "frigate", running: true, state: "RUNNING", status: "Up", autoStart: true, updateAvailable: false },
+  { id: "h:bbb", name: "tdarr", running: false, state: "EXITED", status: "Exited", autoStart: false, updateAvailable: false },
+  { id: "h:ccc", name: "ITSWEBER-Mesh", running: true, state: "RUNNING", status: "Up", autoStart: true, updateAvailable: false },
 ];
 const SELF = ["itsweber-mesh"];
 

@@ -111,7 +111,7 @@ export function parseEndpoint(endpoint: string): Transport {
   }
 }
 
-export function graphqlCall(transport: Transport, apiKey: string, query: string): Promise<string> {
+export function graphqlCall(transport: Transport, apiKey: string, query: string, timeoutMs = 5000): Promise<string> {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({ query });
     const headers = {
@@ -135,7 +135,7 @@ export function graphqlCall(transport: Transport, apiKey: string, query: string)
       res.on("data", (chunk: Buffer) => { data += chunk.toString(); });
       res.on("end", () => resolve(data));
     });
-    req.setTimeout(5000, () => { req.destroy(); reject(new Error("Timeout")); });
+    req.setTimeout(timeoutMs, () => { req.destroy(); reject(new Error("Timeout")); });
     req.on("error", reject);
     req.write(body);
     req.end();

@@ -14,6 +14,8 @@ export type Hint = {
   detail: string;
   /** System the hint belongs to, e.g. the Unraid label or "Home Assistant". */
   system?: string;
+  /** What an admin can do about it right from the list. */
+  action?: { kind: "haUpdate"; entityId: string };
 };
 
 export type SourceState = { source: "certs" | "homeAssistant" | "unraid"; ok: boolean; note?: string };
@@ -99,6 +101,7 @@ export function haUpdateHints(entities: HaUpdateEntity[]): Hint[] {
         title: `Update für ${name}`,
         detail: from && to ? `${from} auf ${to}` : to ? `Version ${to}` : "Neue Version verfügbar",
         system: "Home Assistant",
+        action: { kind: "haUpdate" as const, entityId: e.entity_id },
       };
     })
     .sort((a, b) => a.title.localeCompare(b.title, "de"));
@@ -131,7 +134,7 @@ export type UnraidDetailInput = {
   id: string;
   label: string;
   disks: { name: string; role: "data" | "parity" | "cache"; status: string; ok: boolean; tempC: number | null; errors: number; usedPercent: number | null }[] | null;
-  containers: { name: string; running: boolean; autoStart: boolean }[] | null;
+  containers: { name: string; running: boolean; autoStart: boolean; updateAvailable?: boolean }[] | null;
   notices: { id: string; level: "alert" | "warning"; title: string; subject: string; description: string; timestamp: string | null }[] | null;
 };
 
@@ -176,6 +179,18 @@ export function unraidDetailHints(details: UnraidDetailInput[], now: number): Hi
         kind: "container",
         title: stopped.length === 1 ? `1 Container auf ${d.label} steht trotz Autostart` : `${stopped.length} Container auf ${d.label} stehen trotz Autostart`,
         detail: nameList(stopped),
+        system: d.label,
+      });
+    }
+
+    const updates = (d.containers ?? []).filter((c) => c.updateAvailable).map((c) => c.name);
+    if (updates.length > 0) {
+      out.push({
+        id: `container-update:${d.id}`,
+        level: "watch",
+        kind: "update",
+        title: updates.length === 1 ? `1 Container-Update auf ${d.label}` : `${updates.length} Container-Updates auf ${d.label}`,
+        detail: nameList(updates),
         system: d.label,
       });
     }

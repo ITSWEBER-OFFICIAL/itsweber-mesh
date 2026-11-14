@@ -24,6 +24,8 @@ export type UnraidContainer = {
   state: string;
   status: string;
   autoStart: boolean;
+  /** True when Unraid knows a newer image. Unknown counts as no update. */
+  updateAvailable: boolean;
 };
 
 export type UnraidVm = { id: string; name: string; state: string; running: boolean };
@@ -50,6 +52,7 @@ export type UnraidDetail = {
 const DISK_FIELDS = "name device size status temp numErrors fsSize fsUsed isSpinning";
 export const QUERY_DISKS = `{ array { disks { ${DISK_FIELDS} } parities { ${DISK_FIELDS} } caches { ${DISK_FIELDS} } } }`;
 export const QUERY_CONTAINERS = `{ docker { containers { id names state status autoStart } } }`;
+export const QUERY_UPDATES = `{ docker { containerUpdateStatuses { name updateStatus } } }`;
 export const QUERY_VM_LIST = `{ vms { domain { id name state } } }`;
 export const QUERY_NOTICES = `{ notifications { warningsAndAlerts { id title subject description importance timestamp } } }`;
 
@@ -123,8 +126,21 @@ export function parseContainers(raw: string): UnraidContainer[] | null {
       state: c.state,
       status: c.status ?? "",
       autoStart: c.autoStart ?? false,
+      updateAvailable: false,
     }))
     .sort((a, b) => a.name.localeCompare(b.name, "de", { sensitivity: "base" }));
+}
+
+/** Names of containers with a newer image. null when the answer is unusable. */
+export function parseUpdates(raw: string): Set<string> | null {
+  const d = dataOf<{ docker?: { containerUpdateStatuses?: { name: string; updateStatus: string }[] } }>(raw);
+  if (!d?.docker?.containerUpdateStatuses) return null;
+  return new Set(d.docker.containerUpdateStatuses.filter((u) => u.updateStatus === "UPDATE_AVAILABLE").map((u) => u.name.replace(/^\//, "")));
+}
+
+export function withUpdates(list: UnraidContainer[], updates: Set<string> | null): UnraidContainer[] {
+  if (!updates) return list;
+  return list.map((c) => ({ ...c, updateAvailable: updates.has(c.name) }));
 }
 
 export function parseVms(raw: string): UnraidVm[] | null {
@@ -154,11 +170,13 @@ export function parseNotices(raw: string): UnraidNotice[] | null {
 
 export async function loadUnraidDetail(u: UnraidInstanceConfig): Promise<UnraidDetail> {
   const transport = parseEndpoint(u.endpoint);
-  const [disks, containers, vms, notices] = await Promise.allSettled([
+  const [disks, containers, vms, notices, updates] = await Promise.allSettled([
     graphqlCall(transport, u.apiKey, QUERY_DISKS),
     graphqlCall(transport, u.apiKey, QUERY_CONTAINERS),
     graphqlCall(transport, u.apiKey, QUERY_VM_LIST),
     graphqlCall(transport, u.apiKey, QUERY_NOTICES),
+    // Checking the registries can take longer than the other queries.
+    graphqlCall(transport, u.apiKey, QUERY_UPDATES, 12_000),
   ]);
   const val = <T,>(r: PromiseSettledResult<string>, parse: (raw: string) => T | null): T | null =>
     r.status === "fulfilled" ? parse(r.value) : null;
@@ -167,7 +185,10 @@ export async function loadUnraidDetail(u: UnraidInstanceConfig): Promise<UnraidD
     label: u.label,
     online: [disks, containers, vms, notices].some((r) => r.status === "fulfilled"),
     disks: val(disks, parseDisks),
-    containers: val(containers, parseContainers),
+    containers: (() => {
+      const list = val(containers, parseContainers);
+      return list ? withUpdates(list, val(updates, parseUpdates)) : null;
+    })(),
     vms: val(vms, parseVms),
     notices: val(notices, parseNotices),
   };

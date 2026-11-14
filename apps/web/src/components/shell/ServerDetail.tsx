@@ -15,8 +15,8 @@ type Target =
   | { kind: "vm"; item: UnraidVm };
 
 const ROLE_LABEL: Record<UnraidDisk["role"], string> = { parity: "Parität", data: "Daten", cache: "Cache" };
-const OP_LABEL = { start: "Starten", stop: "Stoppen", restart: "Neu starten" } as const;
-const OP_DONE = { start: "gestartet", stop: "gestoppt", restart: "neu gestartet" } as const;
+const OP_LABEL = { start: "Starten", stop: "Stoppen", restart: "Neu starten", update: "Aktualisieren" } as const;
+const OP_DONE = { start: "gestartet", stop: "gestoppt", restart: "neu gestartet", update: "aktualisiert" } as const;
 
 function diskState(d: UnraidDisk): "ok" | "warn" | "bad" {
   if (!d.ok) return "bad";
@@ -52,8 +52,9 @@ export function ServerDetailView({ nodeId }: { nodeId: string }) {
     void qc.invalidateQueries({ queryKey: ["widget-unraid"] });
     void qc.invalidateQueries({ queryKey: ["mesh-hints"] });
   };
-  const done = (op: keyof typeof OP_DONE) => (res: { name: string }) => {
-    toast.success(`${res.name} ${OP_DONE[op]}`);
+  const done = (op: keyof typeof OP_DONE) => (res: { name: string; pending?: boolean }) => {
+    if (res.pending) toast.success(`Update für ${res.name} läuft`, "Das Ergebnis steht im Protokoll");
+    else toast.success(`${res.name} ${OP_DONE[op]}`);
     setTarget(null);
     refresh();
     // Unraid needs a moment until the new state shows up in its list.
@@ -85,7 +86,8 @@ export function ServerDetailView({ nodeId }: { nodeId: string }) {
   const data = inst?.online ? inst.data : undefined;
   const containers = detail?.containers ?? [];
   const stopped = containers.filter((c) => !c.running);
-  const shown = showAll ? containers : stopped;
+  const withUpdate = containers.filter((c) => c.updateAvailable);
+  const shown = showAll ? containers : containers.filter((c) => !c.running || c.updateAvailable);
   const disks = detail?.disks ?? [];
   const vms = detail?.vms ?? [];
   const notices = detail?.notices ?? [];
@@ -181,21 +183,23 @@ export function ServerDetailView({ nodeId }: { nodeId: string }) {
           </section>
 
           <section className="m-sec">
-            <h2 className="m-h">Container · {showAll ? containers.length : `${stopped.length} gestoppt`}</h2>
+            <h2 className="m-h">
+              Container · {showAll ? containers.length : [`${stopped.length} gestoppt`, withUpdate.length ? `${withUpdate.length} mit Update` : ""].filter(Boolean).join(" · ")}
+            </h2>
             {detail.containers === null && <p className="m-note">Die Container konnten nicht gelesen werden.</p>}
-            {detail.containers !== null && shown.length === 0 && <p className="m-note">Alle {containers.length} Container laufen.</p>}
+            {detail.containers !== null && shown.length === 0 && <p className="m-note">Alle {containers.length} Container laufen und sind aktuell.</p>}
             {shown.map((c) => (
               <ItemRow
                 key={c.id}
                 name={c.name}
-                sub={c.running ? c.status : c.autoStart ? `${c.status || "gestoppt"} · Autostart an` : c.status || "gestoppt"}
-                state={c.running ? "ok" : c.autoStart ? "warn" : "unknown"}
+                sub={[c.running ? c.status : c.status || "gestoppt", !c.running && c.autoStart ? "Autostart an" : "", c.updateAvailable ? "Update verfügbar" : ""].filter(Boolean).join(" · ")}
+                state={c.running ? (c.updateAvailable ? "warn" : "ok") : c.autoStart ? "warn" : "unknown"}
                 onOpen={isAdmin ? () => setTarget({ kind: "container", item: c }) : undefined}
               />
             ))}
             {containers.length > 0 && (
               <button type="button" className="m-btn" style={{ alignSelf: "flex-start", marginTop: 8 }} onClick={() => setShowAll((v) => !v)}>
-                {showAll ? "Nur gestoppte zeigen" : `Alle ${containers.length} zeigen`}
+                {showAll ? "Nur Auffällige zeigen" : `Alle ${containers.length} zeigen`}
               </button>
             )}
           </section>
@@ -231,9 +235,19 @@ export function ServerDetailView({ nodeId }: { nodeId: string }) {
                 ? "Stoppen beendet den Dienst für alle, die ihn gerade nutzen. Die Aktion wird im Protokoll festgehalten."
                 : "Die Aktion wird im Protokoll festgehalten."}
             </p>
+            {target.kind === "container" && target.item.updateAvailable && (
+              <p style={{ margin: "8px 0 0", opacity: 0.75, fontSize: 13.5 }}>
+                Für diesen Container gibt es ein neues Image. Aktualisieren lädt es und startet den Container neu, das kann einige Minuten dauern.
+              </p>
+            )}
           </ModalBody>
           <ModalFooter>
             <button type="button" className="m-btn" disabled={busy} onClick={() => setTarget(null)}>Abbrechen</button>
+            {target.kind === "container" && target.item.updateAvailable && (
+              <button type="button" className="m-btn" disabled={busy} onClick={() => containerAction.mutate({ instanceId, containerId: target.item.id, op: "update" })}>
+                {OP_LABEL.update}
+              </button>
+            )}
             {target.kind === "container" ? (
               target.item.running ? (
                 <>

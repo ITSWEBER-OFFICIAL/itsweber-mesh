@@ -36,6 +36,24 @@ describe("Unraid hints", () => {
     expect(hints[0]).toMatchObject({ level: "watch", title: "1 Container auf Core steht trotz Autostart", detail: "a" });
   });
 
+  it("sums container updates per server into one hint", () => {
+    const hints = unraidDetailHints(
+      [
+        {
+          ...base,
+          containers: [
+            { name: "a", running: true, autoStart: true, updateAvailable: true },
+            { name: "b", running: true, autoStart: true, updateAvailable: true },
+            { name: "c", running: true, autoStart: true, updateAvailable: false },
+          ],
+        },
+      ],
+      NOW,
+    );
+    expect(hints).toHaveLength(1);
+    expect(hints[0]).toMatchObject({ level: "watch", kind: "update", title: "2 Container-Updates auf Core", detail: "a, b" });
+  });
+
   it("reports disk state, errors, temperature and fill level", () => {
     const hints = unraidDetailHints(
       [
