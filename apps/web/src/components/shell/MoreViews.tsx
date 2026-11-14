@@ -14,7 +14,7 @@ import { useHints, HintList } from "./Hints";
 const getJson = <T,>(url: string, empty: T) => (): Promise<T> =>
   fetch(url).then((r) => (r.ok ? (r.json() as Promise<T>) : empty));
 
-/* ── Server (Phase 1: Geräte mit Kernwerten, Netzplan folgt in Phase 2) ──── */
+/* ── Server ──────────────────────────────────────────────────────────────── */
 export function ServerView() {
   const { data: nodes = [] } = trpc.infraNodes.list.useQuery();
   const { data: unraid } = useQuery({
@@ -69,11 +69,18 @@ export function ServerView() {
                     {state === "bad" ? "Die Schnittstelle antwortet nicht." : "Keine Live-Werte, es ist keine Schnittstelle verknüpft."}
                   </p>
                 )}
-                {node.linkUrl && (
+                {(node.linkUrl || node.integrationRef) && (
                   <div className="m-act">
-                    <a className="m-btn p" href={node.linkUrl} target="_blank" rel="noopener noreferrer">
-                      Oberfläche
-                    </a>
+                    {node.integrationRef && (
+                      <Link className="m-btn p" href={`/server/${node.id}`}>
+                        Platten, Container, VMs
+                      </Link>
+                    )}
+                    {node.linkUrl && (
+                      <a className={node.integrationRef ? "m-btn" : "m-btn p"} href={node.linkUrl} target="_blank" rel="noopener noreferrer">
+                        Oberfläche
+                      </a>
+                    )}
                   </div>
                 )}
               </article>

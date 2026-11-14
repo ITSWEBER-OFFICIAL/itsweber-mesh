@@ -272,3 +272,8 @@ html[data-theme="dark"] .m-switch button[aria-pressed="true"] { color: var(--m-o
 html[data-theme="light"] { --brand-hover: #0d6b63; }
 html[data-theme="dark"] .btn-primary { color: var(--m-on-acc); }
 .btn-primary, .btn-ghost { min-height: 44px; }
+
+/* ── Zeilen als Schaltfläche, Chips als Link ─────────────────────────────── */
+.m-row-btn { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.m-row-btn:hover b { color: var(--m-acc); }
+a.m-chip { text-decoration: none; }

@@ -15,6 +15,9 @@ export function clientIsInternal(headers: Headers | undefined): boolean {
 
 export const statusRouter = router({
   /** v18: decides whether internal or external addresses are offered. Display only, never a security decision. */
+  /** Who is signed in. Open mode reports the built-in admin. */
+  me: protectedProcedure.query(({ ctx }) => ({ name: ctx.user?.name ?? "", role: ctx.user?.role ?? "viewer" })),
+
   network: protectedProcedure.query(({ ctx }) => ({ internal: clientIsInternal(ctx.req?.headers) })),
 
   all: protectedProcedure.query(() => {
