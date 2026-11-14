@@ -53,3 +53,18 @@ describe("service worker routing", () => {
     expect(pre).not.toMatch(/"\/"|api|admin/);
   });
 });
+
+describe("service worker notification target", () => {
+  const fn = /function safePath\([^)]*\) \{[\s\S]*?\n\}/.exec(source)?.[0];
+  if (!fn) throw new Error("safePath() not found in sw.js");
+  const safePath = new Function(`${fn}; return safePath;`)() as (url: unknown) => string;
+
+  it("opens only paths inside the app", () => {
+    expect(safePath("/hinweise")).toBe("/hinweise");
+    expect(safePath("/server/7bbc55b4-4dcf")).toBe("/server/7bbc55b4-4dcf");
+    expect(safePath("https://evil.example/x")).toBe("/");
+    expect(safePath("//evil.example/x")).toBe("/");
+    expect(safePath("javascript:alert(1)")).toBe("/");
+    expect(safePath(undefined)).toBe("/");
+  });
+});

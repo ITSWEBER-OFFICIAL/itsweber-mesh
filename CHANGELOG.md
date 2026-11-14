@@ -5,6 +5,24 @@ All notable changes to ITSWEBER Mesh are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-beta.3] — 2026-11-14
+
+Mesh 2.0, phases 2 and 3.
+
+### Added
+
+- Page per Unraid server: disks with state, temperature, errors and fill level, containers, VMs and Unraid's own warnings and alerts.
+- Actions for admins: start, stop and restart containers, start and stop VMs. Each one is confirmed in a dialog, checked against the server's current list and written to an action log. Mesh never stops itself, and actions are refused while sign-in is switched off.
+- Action log under More.
+- Hints: disk state, disk errors, temperature and fill level, containers that are stopped although autostart is on, Unraid warnings and alerts of the last seven days.
+- Web Push for the installed app without third-party packages (RFC 8291, RFC 8292). Only urgent items are sent, a failing service after three minutes. Keys and subscriptions live in `/data/push.json`.
+- Websites view with response time and certificate lifetime, game server view fed by a public status API (`integrations.gameserver.statusUrl`).
+
+### Changed
+
+- Bottom navigation is a docked full-width bar instead of a floating pill.
+- Stopped containers without autostart no longer count as a hint.
+
 ## [2.0.0-beta.2] — 2026-11-14
 
 ### Added

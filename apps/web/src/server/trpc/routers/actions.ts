@@ -14,7 +14,12 @@ import {
 } from "../../unraid/actions";
 
 function instance(id: string) {
-  const u = readConfig().integrations.unraid.find((x) => x.id === id);
+  const cfg = readConfig();
+  // Without a login everyone counts as admin. Reading is fine then, switching things is not.
+  if (cfg.auth.mode === "open") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Aktionen gehen nur mit eingeschalteter Anmeldung" });
+  }
+  const u = cfg.integrations.unraid.find((x) => x.id === id);
   if (!u) throw new TRPCError({ code: "NOT_FOUND", message: "Der Server ist nicht mehr eingerichtet" });
   return u;
 }

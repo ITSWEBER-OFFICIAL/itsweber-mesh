@@ -10,6 +10,7 @@ import { Screen, Dot, Icon } from "./AppShell";
 import { DownList } from "./DownList";
 import { useMeshData } from "./useMeshData";
 import { useHints, HintList } from "./Hints";
+import { PushToggle } from "./PushToggle";
 
 const getJson = <T,>(url: string, empty: T) => (): Promise<T> =>
   fetch(url).then((r) => (r.ok ? (r.json() as Promise<T>) : empty));
@@ -160,7 +161,6 @@ export function HinweiseView() {
         {hints.notes.map((n) => (
           <p className="m-note" key={n}>{n}</p>
         ))}
-        <p className="m-note">Platten und Unraid-Warnungen folgen.</p>
       </section>
     </Screen>
   );
@@ -243,6 +243,8 @@ export function MehrView() {
           ))}
         </div>
       </section>
+
+      <PushToggle />
 
       <section className="m-sec">
         <h2 className="m-h">Verwaltung</h2>
