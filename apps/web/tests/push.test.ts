@@ -128,8 +128,8 @@ describe("push store", () => {
 
   it("adds a device once, removes it and stores what was reported", () => {
     const sub = { endpoint: "https://web.push.apple.com/x", p256dh: "p", auth: "a" };
-    addSubscription(sub, "benny");
-    addSubscription(sub, "benny");
+    addSubscription(sub, "user");
+    addSubscription(sub, "user");
     expect(readPushState().subs).toHaveLength(1);
     setKnown(["service:1"]);
     expect(readPushState().known).toEqual(["service:1"]);
