@@ -15,10 +15,10 @@ export function LandingPage({ siteName, subtitle, authMode }: LandingPageProps) 
       <div className="landing-card">
         <div className="landing-logo-wrap">
           <Image
-            src="/logo-mesh-mark.svg"
+            src="/icons/app-icon-192.png"
             alt={siteName}
-            width={40}
-            height={40}
+            width={56}
+            height={56}
             className="landing-logo-img"
           />
         </div>

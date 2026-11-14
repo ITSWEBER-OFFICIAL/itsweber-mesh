@@ -5,6 +5,68 @@ All notable changes to ITSWEBER Mesh are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-beta.4] — 2026-11-14
+
+### Added
+
+- Network map in the server view: internet, gateway, servers and devices with their state, tap a node to jump to it. UniFi and AdGuard at a glance below.
+- Updates from Mesh for admins: containers for which Unraid reports a newer image, and pending Home Assistant updates. Both are checked against the live state first, confirmed in a dialog and logged, long updates report their real end in the action log.
+- Hint for container updates per server.
+
+## [2.0.0-beta.3] — 2026-11-14
+
+Mesh 2.0, phases 2 and 3.
+
+### Added
+
+- Page per Unraid server: disks with state, temperature, errors and fill level, containers, VMs and Unraid's own warnings and alerts.
+- Actions for admins: start, stop and restart containers, start and stop VMs. Each one is confirmed in a dialog, checked against the server's current list and written to an action log. Mesh never stops itself, and actions are refused while sign-in is switched off.
+- Action log under More.
+- Hints: disk state, disk errors, temperature and fill level, containers that are stopped although autostart is on, Unraid warnings and alerts of the last seven days.
+- Web Push for the installed app without third-party packages (RFC 8291, RFC 8292). Only urgent items are sent, a failing service after three minutes. Keys and subscriptions live in `/data/push.json`.
+- Websites view with response time and certificate lifetime, game server view fed by a public status API (`integrations.gameserver.statusUrl`).
+
+### Changed
+
+- Bottom navigation is a docked full-width bar instead of a floating pill.
+- Stopped containers without autostart no longer count as a hint.
+
+## [2.0.0-beta.2] — 2026-11-14
+
+### Added
+
+- Hints: certificates of all https services (watch below 21 days, urgent below 3 days or expired), pending Home Assistant updates, stopped containers per Unraid server, array not started, Unraid server unreachable. Start, ring and the bell count urgent hints.
+- Sliding OIDC session: 7 days idle, 30 days absolute. The app renews it when opened or brought back to the foreground.
+
+### Changed
+
+- The Unraid query lives in a server module and reports the names of stopped containers.
+
+## [2.0.0-beta.1] — 2026-11-14
+
+Mesh 2.0, phase 1. Mobile first, installable, one look in light and dark.
+
+### Added
+
+- New shell for every page: floating pill navigation on phones, rail on desktop, safe areas, system fonts only.
+- Start with status ring, urgent items and quick access. Services with search, filters, outages first and the protection of each service.
+- Pages Server, Hints and More. The former widget dashboard stays available at `/boards/home`.
+- Services carry an internal and an external address and a protection level. Mesh offers the address that works from the network of the caller.
+- Installable as an app: web manifest, icons, service worker for the shell with an offline page. Pages, sign-in and API are never cached.
+- Import a list of services under Admin, Services, with a dry run before applying.
+
+### Changed
+
+- Config schema v18. Themes are reduced to system, light and dark, the former preset is kept in `theme.legacyPreset`. A backup `config.json.pre-v17` is written before the migration.
+- An image older than 2.0 cannot read a v18 config. To go back, restore `config.json.pre-v17` first.
+- Admin uses the same shell with a collapsible menu on phones.
+
+### Fixed
+
+- An invalid, unreadable or newer config no longer falls back to auth mode open. Reads lock sign-in, writes refuse to overwrite the file, writes are atomic.
+- OIDC logout behind a reverse proxy redirected to the internal address.
+- Render loop while admin lists were loading.
+
 ## [1.5.2] — 2026-05-01
 
 ### Fixed

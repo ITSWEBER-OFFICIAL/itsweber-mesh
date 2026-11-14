@@ -14,7 +14,13 @@ export const runtime = "nodejs";
 async function handle(req: NextRequest) {
   const config = readConfig();
   const url = new URL(req.url);
-  const postLogoutRedirectUri = new URL("/admin/login", `${url.protocol}//${url.host}`).toString();
+  // Behind the reverse proxy req.url carries the internal origin. Use the public one,
+  // same as /start and /callback, otherwise the IDP sends the browser to an address
+  // that does not exist from outside.
+  const proto = req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ?? url.protocol.replace(":", "");
+  const host =
+    req.headers.get("x-forwarded-host")?.split(",")[0]?.trim() ?? req.headers.get("host") ?? url.host;
+  const postLogoutRedirectUri = new URL("/admin/login", `${proto}://${host}`).toString();
 
   let endSessionUrl: URL | null = null;
   if (

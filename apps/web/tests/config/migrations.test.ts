@@ -21,11 +21,11 @@ const V1_MINIMAL: Record<string, unknown> = {
 };
 
 describe("migrations chain", () => {
-  it("has 16 migration steps covering v1 → v17", () => {
-    expect(migrations).toHaveLength(16);
+  it("has 17 migration steps covering v1 → v18", () => {
+    expect(migrations).toHaveLength(17);
     expect(migrations[0]!.from).toBe(1);
-    expect(migrations[15]!.to).toBe(17);
-    expect(CURRENT_VERSION).toBe(17);
+    expect(migrations[16]!.to).toBe(18);
+    expect(CURRENT_VERSION).toBe(18);
   });
 
   it("no gaps or overlaps in migration versions", () => {
@@ -34,21 +34,21 @@ describe("migrations chain", () => {
     }
   });
 
-  it("full chain v1 → v17 produces version 17", () => {
+  it("full chain v1 → v18 produces version 18", () => {
     const result = runMigrations({ ...V1_MINIMAL });
-    expect(result["version"]).toBe(17);
+    expect(result["version"]).toBe(18);
   });
 
-  it("full chain v1 → v17 passes ConfigSchema validation", () => {
+  it("full chain v1 → v18 passes ConfigSchema validation", () => {
     const result = runMigrations({ ...V1_MINIMAL });
     const parsed = ConfigSchema.safeParse(result);
     expect(parsed.success).toBe(true);
   });
 
-  it("already-current config (v17) passes through unchanged", () => {
+  it("already-current config (v18) passes through unchanged", () => {
     const alreadyCurrent = runMigrations({ ...V1_MINIMAL });
     const secondPass = runMigrations(alreadyCurrent);
-    expect(secondPass["version"]).toBe(17);
+    expect(secondPass["version"]).toBe(18);
   });
 
   it("v16 → v17: removes layout.tabs and adds pinnedToHome to services", () => {
@@ -109,7 +109,7 @@ describe("migrations chain", () => {
     expect(services[0]!["pinnedToHome"]).toBe(true);
   });
 
-  it("runMigrations is idempotent: running twice on v17 output yields same result", () => {
+  it("runMigrations is idempotent: running twice on v18 output yields same result", () => {
     const once = runMigrations({ ...V1_MINIMAL });
     const twice = runMigrations(once);
     expect(JSON.stringify(twice)).toBe(JSON.stringify(once));

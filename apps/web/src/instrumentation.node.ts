@@ -42,4 +42,7 @@ export async function register() {
 
   const { startScheduler } = await import("./server/healthcheck/scheduler");
   startScheduler();
+
+  const { startPushNotifier } = await import("./server/push/notifier");
+  startPushNotifier();
 }

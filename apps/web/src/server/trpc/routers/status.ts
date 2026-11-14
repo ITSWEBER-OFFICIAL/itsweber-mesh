@@ -3,8 +3,23 @@ import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../init";
 import { getPingResults, pingService } from "../../healthcheck/scheduler";
 import { readConfig } from "../../config/store";
+import { isInternalUrl } from "../../config/migrations";
+
+/** Client address as seen by the reverse proxy. No proxy header means direct access from the LAN. */
+export function clientIsInternal(headers: Headers | undefined): boolean {
+  const ip = headers?.get("x-forwarded-for")?.split(",")[0]?.trim() || headers?.get("x-real-ip")?.trim() || "";
+  if (!ip) return true;
+  const host = ip.includes(":") && !ip.includes(".") ? "[" + ip + "]" : ip.replace(/^::ffff:/i, "");
+  return isInternalUrl("http://" + host) === true;
+}
 
 export const statusRouter = router({
+  /** v18: decides whether internal or external addresses are offered. Display only, never a security decision. */
+  /** Who is signed in. Open mode reports the built-in admin. */
+  me: protectedProcedure.query(({ ctx }) => ({ name: ctx.user?.name ?? "", role: ctx.user?.role ?? "viewer" })),
+
+  network: protectedProcedure.query(({ ctx }) => ({ internal: clientIsInternal(ctx.req?.headers) })),
+
   all: protectedProcedure.query(() => {
     return getPingResults();
   }),

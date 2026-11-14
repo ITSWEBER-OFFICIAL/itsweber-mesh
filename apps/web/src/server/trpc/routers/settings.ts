@@ -2,7 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, adminProcedure } from "../init";
 import { readConfig, patchConfig } from "../../config/store";
-import { AuthModeSchema } from "../../config/schema";
+import { AuthModeSchema, ThemePresetSchema } from "../../config/schema";
 import { clearOidcCache } from "../../auth/oidc-client";
 
 const BackgroundPatchSchema = z.discriminatedUnion("kind", [
@@ -12,7 +12,7 @@ const BackgroundPatchSchema = z.discriminatedUnion("kind", [
 ]);
 
 const ThemePatchSchema = z.object({
-  preset: z.enum(["dark", "light", "terminal", "itsweber", "slate", "modern-light", "graphite-command"]).optional(),
+  preset: ThemePresetSchema.optional(),
   accent: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
   customCss: z.string().optional(),
   background: BackgroundPatchSchema.optional(),
@@ -78,6 +78,7 @@ export const settingsRouter = router({
     .mutation(async ({ input }) => {
       const config = readConfig();
       const updated = {
+        ...config.theme,
         preset: input.preset ?? config.theme.preset,
         accent: input.accent ?? config.theme.accent,
         background: input.background ?? config.theme.background,

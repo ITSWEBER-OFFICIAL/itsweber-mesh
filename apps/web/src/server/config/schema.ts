@@ -57,12 +57,35 @@ export const SearchConfigSchema = z.object({
 export type SearchConfig = z.infer<typeof SearchConfigSchema>;
 
 /* ── Service ─────────────────────────────────────────────────────────────── */
+/** v18: "web" (Webseiten, CMS) und "gaming" (Gameserver) ergänzt */
+export const ServiceCategorySchema = z.enum([
+  "infrastructure",
+  "media",
+  "smart-home",
+  "tools",
+  "external",
+  "web",
+  "gaming",
+]);
+export type ServiceCategory = z.infer<typeof ServiceCategorySchema>;
+
+/** v18: how a service is secured. "unknown" until someone sets it. */
+export const ServiceProtectionSchema = z.enum(["authentik", "login", "public", "unknown"]);
+export type ServiceProtection = z.infer<typeof ServiceProtectionSchema>;
+
 export const ServiceSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1),
   description: z.string().optional(),
+  /** Primary link, kept for every existing consumer. */
   url: z.string().url(),
-  category: z.enum(["infrastructure", "media", "smart-home", "tools", "external"]),
+  /** v18: address inside the home network (IP or local name) */
+  urlInternal: z.string().url().optional(),
+  /** v18: address reachable from outside (public domain) */
+  urlExternal: z.string().url().optional(),
+  /** v18: Authentik, own login, public or not yet classified */
+  protection: ServiceProtectionSchema.default("unknown"),
+  category: ServiceCategorySchema,
   icon: z.string().default("globe"),
   color: z.string().optional(),
   pingTarget: z.object({
@@ -319,9 +342,13 @@ export const QuickActionSchema = z.object({
 });
 export type QuickAction = z.infer<typeof QuickActionSchema>;
 
+/* ── Theme (v18) ─────────────────────────────────────────────────────────── */
+export const ThemePresetSchema = z.enum(["system", "light", "dark"]);
+export type ThemePreset = z.infer<typeof ThemePresetSchema>;
+
 /* ── Config-Root ─────────────────────────────────────────────────────────── */
 export const ConfigSchema = z.object({
-  version: z.literal(17),
+  version: z.literal(18),
   meta: z.object({
     name: z.string().default("ITSWEBER Mesh"),
     locale: z.enum(["de", "en"]).default("de"),
@@ -340,9 +367,10 @@ export const ConfigSchema = z.object({
     quickActions: z.array(QuickActionSchema).default([]),
   }),
   theme: z.object({
-    preset: z
-      .enum(["dark", "light", "terminal", "itsweber", "slate", "modern-light", "graphite-command"])
-      .default("graphite-command"),
+    /** v18: Signal in hell und dunkel, "system" folgt dem Gerät */
+    preset: ThemePresetSchema.default("system"),
+    /** v18: preset name from before v18, kept so nothing is lost */
+    legacyPreset: z.string().optional(),
     accent: z
       .string()
       .regex(/^#[0-9a-f]{6}$/i)
@@ -470,6 +498,8 @@ export const ConfigSchema = z.object({
         statusPageSlug: z.string().optional(),
       })
       .default({}),
+    /** Mesh 2.0: public status API of the game servers (GET <statusUrl>/v1/status). */
+    gameserver: z.object({ statusUrl: z.string().optional() }).default({}),
     pihole: z
       .array(
         z.object({

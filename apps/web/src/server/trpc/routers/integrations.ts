@@ -237,6 +237,17 @@ export const integrationsRouter = router({
       await patchConfig({ integrations: { ...cfg.integrations, portainer: list } });
     }),
 
+  getGameserver: adminProcedure.query(() => ({ statusUrl: readConfig().integrations.gameserver.statusUrl ?? "" })),
+
+  updateGameserver: adminProcedure
+    .input(z.object({ statusUrl: z.string().trim().max(300).refine((v) => v === "" || /^https?:\/\//i.test(v), "Die Adresse muss mit http oder https beginnen") }))
+    .mutation(async ({ input }) => {
+      const cfg = readConfig();
+      const gameserver = input.statusUrl ? { statusUrl: input.statusUrl } : {};
+      await patchConfig({ integrations: { ...cfg.integrations, gameserver } });
+      return gameserver;
+    }),
+
   updateUptimeKuma: adminProcedure
     .input(UptimeKumaSchema)
     .mutation(async ({ input }) => {

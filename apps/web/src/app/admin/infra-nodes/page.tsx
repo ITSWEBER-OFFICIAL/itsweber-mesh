@@ -26,8 +26,11 @@ const FormSchema = z.object({
 });
 type Form = z.infer<typeof FormSchema>;
 
+/** Stable empty default: a fresh [] per render would retrigger the sync effect below while loading. */
+const NONE: never[] = [];
+
 export default function AdminInfraNodesPage() {
-  const { data: nodes = [] } = trpc.infraNodes.list.useQuery();
+  const { data: nodes = NONE } = trpc.infraNodes.list.useQuery();
   const { data: integrations } = trpc.integrations.get.useQuery();
   const utils = trpc.useUtils();
   const toast = useToast();

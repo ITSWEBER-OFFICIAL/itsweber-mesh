@@ -12,6 +12,7 @@ import { boardsRouter } from "./routers/boards";
 import { usersRouter } from "./routers/users";
 import { searchRouter } from "./routers/search";
 import { helpItemsRouter } from "./routers/helpItems";
+import { actionsRouter } from "./routers/actions";
 
 export const appRouter = router({
   services: servicesRouter,
@@ -27,6 +28,7 @@ export const appRouter = router({
   users: usersRouter,
   search: searchRouter,
   helpItems: helpItemsRouter,
+  actions: actionsRouter,
 });
 
 export type AppRouter = typeof appRouter;

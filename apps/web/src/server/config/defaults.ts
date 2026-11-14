@@ -15,7 +15,7 @@ const DDG_ENGINE_ID    = "00000000-0000-0000-0000-000000000011";
 const BRAVE_ENGINE_ID  = "00000000-0000-0000-0000-000000000012";
 
 export const defaultConfig: Config = {
-  version: 17,
+  version: 18,
   meta: {
     name: "ITSWEBER Mesh",
     locale: "de",
@@ -27,7 +27,7 @@ export const defaultConfig: Config = {
     quickActions: [],
   },
   theme: {
-    preset: "graphite-command",
+    preset: "system",
     accent: "#2ea3f2",
     background: { kind: "solid" },
     backgroundPattern: "mesh",
@@ -136,7 +136,7 @@ export const defaultConfig: Config = {
   },
   services: [
     {
-      id: uuidv4(), name: "My Server", category: "infrastructure",
+      id: uuidv4(), name: "My Server", category: "infrastructure", protection: "unknown",
       url: "http://192.168.1.100:1080", icon: "server",
       pingTarget: { kind: "http", url: "http://192.168.1.100:1080", expectStatus: [200, 204, 301, 302, 401], timeoutMs: 3000 },
       sortOrder: 0, enabled: true, pinnedToHome: true,
@@ -144,7 +144,7 @@ export const defaultConfig: Config = {
       gridLayout: { x: 0, y: 0, w: 8, h: 16, minW: 4, minH: 8 },
     },
     {
-      id: uuidv4(), name: "Nginx Proxy Manager", category: "infrastructure",
+      id: uuidv4(), name: "Nginx Proxy Manager", category: "infrastructure", protection: "unknown",
       url: "http://192.168.1.2:81", icon: "shield",
       pingTarget: { kind: "http", url: "http://192.168.1.2:81", expectStatus: [200, 204, 301, 302, 401], timeoutMs: 3000 },
       sortOrder: 10, enabled: true, pinnedToHome: false,
@@ -152,7 +152,7 @@ export const defaultConfig: Config = {
       gridLayout: { x: 8, y: 0, w: 8, h: 16, minW: 4, minH: 8 },
     },
     {
-      id: uuidv4(), name: "AdGuard Home", category: "infrastructure",
+      id: uuidv4(), name: "AdGuard Home", category: "infrastructure", protection: "unknown",
       url: "http://192.168.1.3:3000", icon: "shield-check",
       pingTarget: { kind: "http", url: "http://192.168.1.3:3000", expectStatus: [200, 204, 301, 302, 401], timeoutMs: 3000 },
       sortOrder: 20, enabled: true, pinnedToHome: true,
@@ -160,7 +160,7 @@ export const defaultConfig: Config = {
       gridLayout: { x: 16, y: 0, w: 8, h: 16, minW: 4, minH: 8 },
     },
     {
-      id: uuidv4(), name: "Router", category: "infrastructure",
+      id: uuidv4(), name: "Router", category: "infrastructure", protection: "unknown",
       url: "https://192.168.1.1", icon: "network",
       pingTarget: { kind: "http", url: "https://192.168.1.1", expectStatus: [200, 204, 301, 302, 401], timeoutMs: 3000 },
       sortOrder: 30, enabled: true, pinnedToHome: false,
@@ -168,7 +168,7 @@ export const defaultConfig: Config = {
       gridLayout: { x: 0, y: 16, w: 8, h: 16, minW: 4, minH: 8 },
     },
     {
-      id: uuidv4(), name: "Home Assistant", category: "smart-home",
+      id: uuidv4(), name: "Home Assistant", category: "smart-home", protection: "unknown",
       url: "http://homeassistant.local:8123", icon: "home",
       pingTarget: { kind: "http", url: "http://homeassistant.local:8123", expectStatus: [200, 204, 301, 302, 401], timeoutMs: 3000 },
       sortOrder: 40, enabled: true, pinnedToHome: true,
@@ -176,7 +176,7 @@ export const defaultConfig: Config = {
       gridLayout: { x: 8, y: 16, w: 8, h: 16, minW: 4, minH: 8 },
     },
     {
-      id: uuidv4(), name: "Immich", category: "media",
+      id: uuidv4(), name: "Immich", category: "media", protection: "unknown",
       url: "http://192.168.1.100:2283", icon: "image",
       pingTarget: { kind: "http", url: "http://192.168.1.100:2283", expectStatus: [200, 204, 301, 302, 401], timeoutMs: 3000 },
       sortOrder: 50, enabled: true, pinnedToHome: true,
@@ -184,7 +184,7 @@ export const defaultConfig: Config = {
       gridLayout: { x: 16, y: 16, w: 8, h: 16, minW: 4, minH: 8 },
     },
     {
-      id: uuidv4(), name: "Jellyfin", category: "media",
+      id: uuidv4(), name: "Jellyfin", category: "media", protection: "unknown",
       url: "http://192.168.1.100:8096", icon: "play-circle",
       pingTarget: { kind: "http", url: "http://192.168.1.100:8096", expectStatus: [200, 204, 301, 302, 401], timeoutMs: 3000 },
       sortOrder: 60, enabled: true, pinnedToHome: false,
@@ -192,7 +192,7 @@ export const defaultConfig: Config = {
       gridLayout: { x: 0, y: 32, w: 8, h: 16, minW: 4, minH: 8 },
     },
     {
-      id: uuidv4(), name: "Frigate NVR", category: "media",
+      id: uuidv4(), name: "Frigate NVR", category: "media", protection: "unknown",
       url: "http://192.168.1.100:5000", icon: "camera",
       pingTarget: { kind: "http", url: "http://192.168.1.100:5000", expectStatus: [200, 204, 301, 302, 401], timeoutMs: 3000 },
       sortOrder: 70, enabled: true, pinnedToHome: false,
@@ -200,7 +200,7 @@ export const defaultConfig: Config = {
       gridLayout: { x: 8, y: 32, w: 8, h: 16, minW: 4, minH: 8 },
     },
     {
-      id: uuidv4(), name: "Portainer", category: "tools",
+      id: uuidv4(), name: "Portainer", category: "tools", protection: "unknown",
       url: "http://192.168.1.100:9000", icon: "box",
       pingTarget: { kind: "http", url: "http://192.168.1.100:9000", expectStatus: [200, 204, 301, 302, 401], timeoutMs: 3000 },
       sortOrder: 80, enabled: true, pinnedToHome: true,
@@ -208,7 +208,7 @@ export const defaultConfig: Config = {
       gridLayout: { x: 16, y: 32, w: 8, h: 16, minW: 4, minH: 8 },
     },
     {
-      id: uuidv4(), name: "Authentik SSO", category: "external",
+      id: uuidv4(), name: "Authentik SSO", category: "external", protection: "unknown",
       url: "https://auth.example.com", icon: "lock",
       pingTarget: { kind: "http", url: "https://auth.example.com", expectStatus: [200, 204, 301, 302, 401], timeoutMs: 5000 },
       sortOrder: 90, enabled: true, pinnedToHome: false,
@@ -290,6 +290,7 @@ export const defaultConfig: Config = {
   ],
   integrations: {
     unraid: [],
+    gameserver: {},
     homeAssistant: {},
     adguard: {},
     unifi: {

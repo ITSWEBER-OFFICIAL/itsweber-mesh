@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ShieldAlert, X } from "lucide-react";
 import { trpc } from "@/lib/trpc-client";
@@ -15,7 +15,11 @@ export function AuthBanner() {
   const [hidden, setHidden] = useState(false);
   const { data: settings } = trpc.settings.get.useQuery();
 
-  if (hidden) return null;
+  // Render only after mount: the settings query can resolve before a late Suspense boundary hydrates.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted || hidden) return null;
   if (!settings) return null;
   if (settings.auth.mode !== "open") return null;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Plus, Pencil, Trash2, Save, LayoutGrid, Tv, Home, Wrench, Globe, Server, Search, Upload, X, Wand2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, LayoutGrid, Tv, Home, Wrench, Globe, Server, Search, Upload, X, Wand2, Gamepad2, PanelsTopLeft } from "lucide-react";
 import type { IconSuggestion } from "@/app/api/icons/suggest/route";
 import { SortableList } from "@/components/ui/SortableList";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/Modal";
@@ -11,13 +11,18 @@ import { z } from "zod";
 import { trpc } from "@/lib/trpc-client";
 import { useToast } from "@/components/ui/Toast";
 import { SERVICE_CATALOG, type ServiceCatalogEntry } from "@/lib/service-catalog";
-import type { Service } from "@/server/config/schema";
+import { ImportListSchema } from "@/lib/service-import";
+import { ServiceCategorySchema, ServiceProtectionSchema, type Service } from "@/server/config/schema";
 
 const ServiceFormSchema = z.object({
   name: z.string().min(1, "Name erforderlich"),
   url: z.string().url("Gültige URL erforderlich"),
+  /** v18: leer oder gültige URL */
+  urlInternal: z.union([z.literal(""), z.string().url("Gültige URL erforderlich")]).optional(),
+  urlExternal: z.union([z.literal(""), z.string().url("Gültige URL erforderlich")]).optional(),
+  protection: ServiceProtectionSchema.default("unknown"),
   description: z.string().optional(),
-  category: z.enum(["infrastructure", "media", "smart-home", "tools", "external"]),
+  category: ServiceCategorySchema,
   icon: z.string().default("globe"),
   color: z.string().optional(),
   enabled: z.boolean().default(true),
@@ -30,23 +35,37 @@ const ServiceFormSchema = z.object({
 type ServiceForm = z.infer<typeof ServiceFormSchema>;
 
 const CATEGORIES: { value: Service["category"]; label: string }[] = [
-  { value: "infrastructure", label: "Infrastructure" },
-  { value: "media",          label: "Media" },
-  { value: "smart-home",     label: "Smart Home" },
-  { value: "tools",          label: "Tools" },
-  { value: "external",       label: "External" },
+  { value: "infrastructure", label: "Verwaltung" },
+  { value: "smart-home",     label: "Zuhause" },
+  { value: "media",          label: "Medien" },
+  { value: "web",            label: "Web" },
+  { value: "gaming",         label: "Gaming" },
+  { value: "tools",          label: "Werkzeuge" },
+  { value: "external",       label: "Extern" },
+];
+
+const PROTECTIONS: { value: Service["protection"]; label: string }[] = [
+  { value: "unknown",   label: "Nicht festgelegt" },
+  { value: "authentik", label: "Hinter Authentik" },
+  { value: "login",     label: "Eigener Login" },
+  { value: "public",    label: "Öffentlich" },
 ];
 
 const CATEGORY_META: Record<Service["category"], { icon: React.ReactNode; color: string; label: string }> = {
-  infrastructure: { icon: <Server size={14} />,  color: "var(--cat-infrastructure)", label: "Infrastructure" },
-  media:          { icon: <Tv size={14} />,       color: "var(--cat-media)",          label: "Media" },
-  "smart-home":   { icon: <Home size={14} />,     color: "var(--cat-smart-home)",     label: "Smart Home" },
-  tools:          { icon: <Wrench size={14} />,   color: "var(--cat-tools)",          label: "Tools" },
-  external:       { icon: <Globe size={14} />,    color: "var(--cat-external)",       label: "External" },
+  infrastructure: { icon: <Server size={14} />,  color: "var(--cat-infrastructure)", label: "Verwaltung" },
+  media:          { icon: <Tv size={14} />,       color: "var(--cat-media)",          label: "Medien" },
+  "smart-home":   { icon: <Home size={14} />,     color: "var(--cat-smart-home)",     label: "Zuhause" },
+  tools:          { icon: <Wrench size={14} />,   color: "var(--cat-tools)",          label: "Werkzeuge" },
+  external:       { icon: <Globe size={14} />,    color: "var(--cat-external)",       label: "Extern" },
+  web:            { icon: <PanelsTopLeft size={14} />, color: "var(--cat-external)",  label: "Web" },
+  gaming:         { icon: <Gamepad2 size={14} />, color: "var(--cat-tools)",          label: "Gaming" },
 };
 
+/** Stable empty default: a fresh [] per render would retrigger the sync effect below while loading. */
+const NONE: never[] = [];
+
 export default function AdminServicesPage() {
-  const { data: services = [] } = trpc.services.list.useQuery();
+  const { data: services = NONE } = trpc.services.list.useQuery();
   const utils = trpc.useUtils();
   const toast = useToast();
   const onErr = (e: { message?: string }) => toast.error("Fehler", e?.message);
@@ -55,11 +74,11 @@ export default function AdminServicesPage() {
   useEffect(() => { setItems(services); }, [services]);
 
   const upsert = trpc.services.upsert.useMutation({
-    onSuccess: () => { utils.services.list.invalidate(); setEditing(null); toast.success("Service gespeichert"); },
+    onSuccess: () => { utils.services.list.invalidate(); utils.services.listLite.invalidate(); setEditing(null); toast.success("Service gespeichert"); },
     onError: onErr,
   });
   const del = trpc.services.delete.useMutation({
-    onSuccess: () => { utils.services.list.invalidate(); toast.success("Service gelöscht"); },
+    onSuccess: () => { utils.services.list.invalidate(); utils.services.listLite.invalidate(); toast.success("Service gelöscht"); },
     onError: onErr,
   });
   const reorder = trpc.services.reorder.useMutation({
@@ -67,6 +86,7 @@ export default function AdminServicesPage() {
   });
 
   const [editing, setEditing] = useState<Service | null | "new">(null);
+  const [importing, setImporting] = useState(false);
 
   return (
     <div className="admin-card">
@@ -78,9 +98,14 @@ export default function AdminServicesPage() {
             <div className="admin-card-sub">{items.length} Einträge konfiguriert</div>
           </div>
         </div>
-        <button type="button" onClick={() => setEditing("new")} className="btn-primary">
-          <Plus size={14} />Hinzufügen
-        </button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button type="button" onClick={() => setImporting(true)} className="btn-ghost">
+            <Upload size={14} />Liste einlesen
+          </button>
+          <button type="button" onClick={() => setEditing("new")} className="btn-primary">
+            <Plus size={14} />Hinzufügen
+          </button>
+        </div>
       </div>
 
       {editing && (
@@ -92,6 +117,9 @@ export default function AdminServicesPage() {
               id: editing !== "new" ? editing.id : undefined,
               name: data.name,
               url: data.url,
+              urlInternal: data.urlInternal ?? "",
+              urlExternal: data.urlExternal ?? "",
+              protection: data.protection,
               description: data.description,
               category: data.category,
               icon: data.icon,
@@ -109,6 +137,8 @@ export default function AdminServicesPage() {
           isPending={upsert.isPending}
         />
       )}
+
+      {importing && <ImportModal onClose={() => setImporting(false)} />}
 
       {items.length === 0 && (
         <div className="int-empty">Noch keine Services konfiguriert.</div>
@@ -154,6 +184,93 @@ export default function AdminServicesPage() {
         }}
       />
     </div>
+  );
+}
+
+/* ── Liste einlesen (v18) ────────────────────────────────────────────────── */
+const IMPORT_EXAMPLE = `[
+  { "name": "Emby", "urlExternal": "https://emby.example.net", "category": "media", "protection": "login" },
+  { "name": "Status-API", "urlExternal": "https://api.example.net", "category": "gaming", "protection": "public", "expectStatus": [404] }
+]`;
+
+function ImportModal({ onClose }: { onClose: () => void }) {
+  const utils = trpc.useUtils();
+  const toast = useToast();
+  const [text, setText] = useState("");
+  const [parseError, setParseError] = useState<string | null>(null);
+  const run = trpc.services.import.useMutation({
+    onSuccess: (res) => {
+      if (!res.applied) return;
+      utils.services.list.invalidate(); utils.services.listLite.invalidate();
+      toast.success("Liste übernommen", `${res.added.length} neu, ${res.updated.length} ergänzt`);
+      onClose();
+    },
+    onError: (e) => toast.error("Einlesen fehlgeschlagen", e.message),
+  });
+  const preview = run.data && !run.data.applied ? run.data : null;
+
+  function submit(apply: boolean) {
+    setParseError(null);
+    const parsed = ImportListSchema.safeParse((() => { try { return JSON.parse(text); } catch { return null; } })());
+    if (!parsed.success) {
+      setParseError("Das ist keine gültige Liste. Erwartet wird JSON wie im Beispiel, jeder Eintrag braucht Name und mindestens eine Adresse.");
+      return;
+    }
+    run.mutate({ entries: parsed.data, apply });
+  }
+
+  return (
+    <Modal onClose={onClose} size="lg">
+      <ModalHeader title="Liste einlesen" subtitle="Vorhandene Dienste werden nur ergänzt, nie überschrieben" onClose={onClose} />
+      <ModalBody>
+        <div className="form-stack">
+          <div className="admin-field">
+            <label className="admin-label" htmlFor="import-json">Dienste als JSON</label>
+            <textarea
+              id="import-json"
+              className="admin-input font-mono"
+              rows={10}
+              value={text}
+              onChange={(e) => { setText(e.target.value); run.reset(); }}
+              placeholder={IMPORT_EXAMPLE}
+              spellCheck={false}
+            />
+            <input
+              type="file"
+              accept="application/json,.json"
+              aria-label="JSON-Datei wählen"
+              className="mt-[8px]"
+              onChange={async (e) => { const f = e.target.files?.[0]; if (f) { setText(await f.text()); run.reset(); } }}
+            />
+            {parseError && <span className="field-error">{parseError}</span>}
+          </div>
+          {preview && (
+            <div className="admin-field" role="status">
+              <span className="admin-label">Ergebnis der Prüfung</span>
+              <p>
+                {preview.added.length} neu, {preview.updated.length} werden ergänzt, {preview.unchanged.length} bleiben wie sie sind.
+              </p>
+              {preview.added.length > 0 && <p className="admin-hint">Neu: {preview.added.join(", ")}</p>}
+              {preview.updated.length > 0 && (
+                <p className="admin-hint">Ergänzt: {preview.updated.map((u) => `${u.name} (${u.changes.join(", ")})`).join("; ")}</p>
+              )}
+            </div>
+          )}
+        </div>
+      </ModalBody>
+      <ModalFooter>
+        <button type="button" onClick={onClose} className="btn-ghost">Abbrechen</button>
+        {preview && preview.added.length + preview.updated.length > 0 ? (
+          <button type="button" disabled={run.isPending} className="btn-primary" onClick={() => submit(true)}>
+            <Save size={13} />{run.isPending ? "Übernimmt…" : "Übernehmen"}
+          </button>
+        ) : (
+          <button type="button" disabled={run.isPending || !text.trim()} className="btn-primary" onClick={() => submit(false)}>
+            <Search size={13} />{run.isPending ? "Prüft…" : "Prüfen"}
+          </button>
+        )}
+      </ModalFooter>
+    </Modal>
   );
 }
 
@@ -363,6 +480,9 @@ function ServiceFormModal({ service, onClose, onSubmit, isPending }: {
       ? {
           name: service.name,
           url: service.url,
+          urlInternal: service.urlInternal ?? "",
+          urlExternal: service.urlExternal ?? "",
+          protection: service.protection,
           description: service.description,
           category: service.category,
           icon: service.icon,
@@ -373,7 +493,7 @@ function ServiceFormModal({ service, onClose, onSubmit, isPending }: {
           pingUrl: service.pingTarget.url ?? "",
           pingTimeoutMs: service.pingTarget.timeoutMs,
         }
-      : { category: "tools", pingKind: "http", pingTimeoutMs: 3000, enabled: true, pinnedToHome: false, icon: "globe" },
+      : { category: "tools", protection: "unknown", urlInternal: "", urlExternal: "", pingKind: "http", pingTimeoutMs: 3000, enabled: true, pinnedToHome: false, icon: "globe" },
   });
   const { register, handleSubmit, formState: { errors } } = methods;
 
@@ -409,6 +529,23 @@ function ServiceFormModal({ service, onClose, onSubmit, isPending }: {
 
               <Field label="URL" error={errors.url?.message}>
                 <input {...register("url")} className="admin-input" placeholder="https://my-service.example.com" />
+              </Field>
+
+              <div className="admin-grid-2">
+                <Field label="Adresse intern (optional)" error={errors.urlInternal?.message}>
+                  <input {...register("urlInternal")} className="admin-input" placeholder="http://10.0.0.10:8123" />
+                </Field>
+                <Field label="Adresse extern (optional)" error={errors.urlExternal?.message}>
+                  <input {...register("urlExternal")} className="admin-input" placeholder="https://dienst.example.com" />
+                </Field>
+              </div>
+
+              <Field label="Absicherung" error={errors.protection?.message}>
+                <select {...register("protection")} className="admin-input">
+                  {PROTECTIONS.map((p) => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
+                  ))}
+                </select>
               </Field>
 
               <Field label="Beschreibung" error={errors.description?.message}>

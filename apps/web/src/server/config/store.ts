@@ -44,22 +44,60 @@ function ensureConfigFile() {
   }
 }
 
+/**
+ * Fallback for an existing but unreadable config (invalid JSON, failed
+ * validation, or written by a newer version). Never "open": token mode denies
+ * everything unless ADMIN_TOKEN is set, so a broken file cannot unlock the
+ * dashboard.
+ */
+export const lockedConfig: Config = {
+  ...defaultConfig,
+  auth: { ...defaultConfig.auth, mode: "token" },
+};
+
+export class ConfigInvalidError extends Error {
+  constructor() {
+    super("config.json is invalid or from a newer version; refusing to overwrite it. Restore a backup.");
+    this.name = "ConfigInvalidError";
+  }
+}
+
+/** Write via temp file + rename so a crash never leaves a half-written config. */
+function writeJsonAtomic(config: Config) {
+  const fs = nodeFs();
+  const tmp = `${CONFIG_PATH}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(config, null, 2), "utf8");
+  fs.renameSync(tmp, CONFIG_PATH);
+}
+
+/** Read + validate the file on disk. Returns null when it cannot be trusted. */
+function readParsed(): { config: Config; rawVersion: number } | null {
+  try {
+    return parseAndMigrate(readJsonConfig());
+  } catch (err) {
+    logger.error({ err }, "Config file unreadable");
+    return null;
+  }
+}
+
 function readJsonConfig(): Record<string, unknown> {
   const raw = nodeFs().readFileSync(CONFIG_PATH, "utf8").replace(/^\uFEFF/, "");
   return JSON.parse(raw) as Record<string, unknown>;
 }
 
-/** Backup the current config file before a schema migration overwrites it. */
-function backupBeforeMigration(fromVersion: number) {
+/** Backup the current config file before a schema migration overwrites it. Returns false if no backup exists afterwards. */
+function backupBeforeMigration(fromVersion: number): boolean {
   const backupPath = `${CONFIG_PATH}.pre-v${fromVersion}`;
   // Don't overwrite an existing backup (would obliterate the original on multi-restart)
   const fs = nodeFs();
-  if (fs.existsSync(backupPath)) return;
+  if (fs.existsSync(backupPath)) return true;
   try {
     fs.copyFileSync(CONFIG_PATH, backupPath);
     logger.info({ backupPath, fromVersion }, "Pre-migration config backup written");
+    return true;
   } catch (err) {
-    logger.warn({ err, backupPath }, "Failed to write pre-migration backup");
+    logger.error({ err, backupPath }, "Failed to write pre-migration backup");
+    return false;
   }
 }
 
@@ -92,9 +130,8 @@ export function readConfig(): Config {
     );
   }
   ensureConfigFile();
-  const raw = readJsonConfig();
-  const parsed = parseAndMigrate(raw);
-  return parsed ? parsed.config : defaultConfig;
+  const parsed = readParsed();
+  return parsed ? parsed.config : lockedConfig;
 }
 
 /**
@@ -113,10 +150,10 @@ export function readConfigForBuild(): Config {
       unknown
     >;
     const parsed = parseAndMigrate(raw);
-    return parsed ? parsed.config : defaultConfig;
+    return parsed ? parsed.config : lockedConfig;
   } catch (err) {
     logger.warn({ err }, "readConfigForBuild() failed — falling back to defaults");
-    return defaultConfig;
+    return lockedConfig;
   }
 }
 
@@ -130,16 +167,18 @@ export function bootstrapConfigForRuntime(): Config {
     throw new Error("bootstrapConfigForRuntime() must not run during `next build`.");
   }
   ensureConfigFile();
-  const raw = readJsonConfig();
-  const parsed = parseAndMigrate(raw);
+  const parsed = readParsed();
   if (!parsed) {
-    logger.error("Config invalid at bootstrap — using defaults (NOT persisted)");
-    return defaultConfig;
+    logger.error("Config invalid at bootstrap — auth locked, file left untouched");
+    return lockedConfig;
   }
   if (parsed.rawVersion !== parsed.config.version) {
-    backupBeforeMigration(parsed.rawVersion);
+    if (!backupBeforeMigration(parsed.rawVersion)) {
+      logger.error("No pre-migration backup — migrated config kept in memory only");
+      return parsed.config;
+    }
     try {
-      nodeFs().writeFileSync(CONFIG_PATH, JSON.stringify(parsed.config, null, 2), "utf8");
+      writeJsonAtomic(parsed.config);
       logger.info(
         { from: parsed.rawVersion, to: parsed.config.version },
         "Config migrated and persisted",
@@ -160,7 +199,8 @@ export async function writeConfig(config: Config): Promise<void> {
   let release: (() => Promise<void>) | null = null;
   try {
     release = await lockfile.lock(CONFIG_PATH, { retries: { retries: 5, minTimeout: 50 } });
-    nodeFs().writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), "utf8");
+    if (!readParsed()) throw new ConfigInvalidError();
+    writeJsonAtomic(config);
   } finally {
     if (release) await release();
   }
@@ -180,11 +220,10 @@ export async function patchConfig(patch: Partial<Config>): Promise<Config> {
   let release: (() => Promise<void>) | null = null;
   try {
     release = await lockfile.lock(CONFIG_PATH, { retries: { retries: 5, minTimeout: 50 } });
-    const raw = readJsonConfig();
-    const parsed = parseAndMigrate(raw);
-    const current = parsed ? parsed.config : defaultConfig;
-    const updated = { ...current, ...patch };
-    nodeFs().writeFileSync(CONFIG_PATH, JSON.stringify(updated, null, 2), "utf8");
+    const parsed = readParsed();
+    if (!parsed) throw new ConfigInvalidError();
+    const updated = { ...parsed.config, ...patch };
+    writeJsonAtomic(updated);
     return updated;
   } finally {
     if (release) await release();

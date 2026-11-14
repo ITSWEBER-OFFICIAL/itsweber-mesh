@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -96,6 +96,11 @@ export function AdminSidebar() {
     Object.fromEntries(GROUPS.map((g) => [g.label, g.defaultOpen ?? false])),
   );
 
+  // Mobil ist das Menü eingeklappt und schließt nach jedem Seitenwechsel wieder.
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
+  const current = GROUPS.flatMap((g) => g.items).find((i) => isActive(i.href))?.label ?? "Menü";
+
   function toggle(label: string) {
     setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
   }
@@ -106,7 +111,16 @@ export function AdminSidebar() {
   }
 
   return (
-    <aside className="admin-sidebar">
+    <aside className={`admin-sidebar${menuOpen ? " admin-sidebar-open" : ""}`}>
+      <button
+        type="button"
+        className="m-admin-menu"
+        aria-expanded={menuOpen}
+        onClick={() => setMenuOpen((v) => !v)}
+      >
+        <span>{current}</span>
+        <ChevronRight size={16} style={{ transform: menuOpen ? "rotate(90deg)" : undefined }} />
+      </button>
       {GROUPS.map((group) => {
         const open = openGroups[group.label] ?? false;
         const hasActive = group.items.some((i) => isActive(i.href));

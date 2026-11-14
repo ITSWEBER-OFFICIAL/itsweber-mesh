@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { router, protectedProcedure, adminProcedure } from "../init";
 import { readConfig, writeConfig } from "../../config/store";
 import { ServiceSchema, GridLayoutSchema } from "../../config/schema";
+import { ImportListSchema, planImport } from "@/lib/service-import";
 
 const ServiceUpsertSchema = ServiceSchema.omit({ id: true }).partial().extend({
   id: z.string().uuid().optional(),
@@ -18,6 +19,15 @@ export const servicesRouter = router({
     return config.services.sort((a, b) => a.sortOrder - b.sortOrder);
   }),
 
+  /** v18: same list without embedded icons. Uploaded icons are data URLs and make the
+   *  full list megabytes large, the new views do not show them and poll from mobile networks. */
+  listLite: protectedProcedure.query(() => {
+    const config = readConfig();
+    return config.services
+      .map((s) => (s.icon.startsWith("data:") ? { ...s, icon: "globe" } : s))
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  }),
+
   upsert: adminProcedure
     .input(ServiceUpsertSchema)
     .mutation(async ({ input }) => {
@@ -31,6 +41,9 @@ export const servicesRouter = router({
         name: input.name,
         description: input.description,
         url: input.url,
+        urlInternal: input.urlInternal === undefined ? existingService?.urlInternal : input.urlInternal || undefined,
+        urlExternal: input.urlExternal === undefined ? existingService?.urlExternal : input.urlExternal || undefined,
+        protection: input.protection ?? existingService?.protection,
         category: input.category,
         icon: input.icon ?? "globe",
         color: input.color,
@@ -50,6 +63,20 @@ export const servicesRouter = router({
 
       await writeConfig(config);
       return service;
+    }),
+
+  /** v18: merge a list of services. Without apply it only reports what would change. */
+  import: adminProcedure
+    .input(z.object({ entries: ImportListSchema, apply: z.boolean().default(false) }))
+    .mutation(async ({ input }) => {
+      const config = readConfig();
+      const boardId = config.boards.find((b) => b.isHome)?.id ?? "home";
+      const plan = planImport(config.services, input.entries, boardId);
+      if (input.apply && (plan.added.length > 0 || plan.updated.length > 0)) {
+        config.services = plan.services;
+        await writeConfig(config);
+      }
+      return { applied: input.apply, added: plan.added, updated: plan.updated, unchanged: plan.unchanged };
     }),
 
   delete: adminProcedure

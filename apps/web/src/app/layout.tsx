@@ -1,26 +1,18 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono, Saira } from "next/font/google";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./mesh2.css";
 import { readConfigForBuild } from "@/server/config/store";
+import { PwaRegister } from "@/components/shell/PwaRegister";
 
-const geist = Geist({
-  variable: "--font-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const saira = Saira({
-  variable: "--font-brand",
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  display: "swap",
-});
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#0f2230" },
+    { media: "(prefers-color-scheme: dark)", color: "#102633" },
+  ],
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -28,13 +20,31 @@ export async function generateMetadata(): Promise<Metadata> {
     return {
       title: cfg.meta.name,
       description: cfg.meta.subtitle,
-      icons: { icon: "/favicon.svg" },
+      icons: {
+        icon: [
+          { url: "/favicon.ico", sizes: "any" },
+          { url: "/icons/app-icon-32.png", sizes: "32x32", type: "image/png" },
+          { url: "/icons/app-icon-192.png", sizes: "192x192", type: "image/png" },
+        ],
+        apple: [{ url: "/icons/app-icon-180.png", sizes: "180x180" }],
+      },
+      appleWebApp: { capable: true, title: "Mesh", statusBarStyle: "black-translucent" },
+      formatDetection: { telephone: false },
     };
   } catch {
     return {
       title: "ITSWEBER Mesh",
       description: "Homelab Dashboard",
-      icons: { icon: "/favicon.svg" },
+      icons: {
+        icon: [
+          { url: "/favicon.ico", sizes: "any" },
+          { url: "/icons/app-icon-32.png", sizes: "32x32", type: "image/png" },
+          { url: "/icons/app-icon-192.png", sizes: "192x192", type: "image/png" },
+        ],
+        apple: [{ url: "/icons/app-icon-180.png", sizes: "180x180" }],
+      },
+      appleWebApp: { capable: true, title: "Mesh", statusBarStyle: "black-translucent" },
+      formatDetection: { telephone: false },
     };
   }
 }
@@ -44,7 +54,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let theme = "dark";
+  let theme: "system" | "light" | "dark" = "system";
   let customCss = "";
   let accent = "#3ba7a7";
   let bgImageSrc = "";
@@ -70,11 +80,17 @@ export default function RootLayout({
         var t = localStorage.getItem('itsweber-mesh:active-tab');
         if (t) document.documentElement.setAttribute('data-tab', t);
       } catch(e){}
+      try {
+        var d = document.documentElement;
+        if (d.getAttribute('data-theme-pref') === 'system') {
+          d.setAttribute('data-theme', matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        }
+      } catch(e){}
     })();
   `;
 
   return (
-    <html lang="de" data-theme={theme} data-tab="overview" data-bg-pattern={bgPattern}>
+    <html lang="de" data-theme={theme === "light" ? "light" : "dark"} data-theme-pref={theme} data-tab="overview" suppressHydrationWarning data-bg-pattern={bgPattern}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: earlyHtmlAttrs }} />
         <style
@@ -85,7 +101,6 @@ export default function RootLayout({
         <style id="user-custom-css" dangerouslySetInnerHTML={{ __html: customCss }} />
       </head>
       <body
-        className={`${geist.variable} ${geistMono.variable} ${saira.variable}`}
         style={bgImageSrc ? {
           backgroundImage: `url(${JSON.stringify(bgImageSrc)})`,
           backgroundSize: "cover",
@@ -95,6 +110,7 @@ export default function RootLayout({
         } : undefined}
       >
         {children}
+        <PwaRegister />
       </body>
     </html>
   );
