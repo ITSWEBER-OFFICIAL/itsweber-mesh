@@ -9,6 +9,7 @@ import { Providers } from "@/components/providers";
 import { ThemeSync } from "@/components/layout/ThemeSync";
 import { LandingPage } from "@/components/layout/LandingPage";
 import { AppShell } from "@/components/shell/AppShell";
+import { SessionKeepAlive } from "@/components/shell/SessionKeepAlive";
 import { readConfig, readConfigForBuild } from "@/server/config/store";
 import { getStrategy } from "@/server/auth";
 
@@ -49,6 +50,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <Providers>
       <ThemeSync />
+      <SessionKeepAlive />
       <Suspense fallback={null}>
         <AppShell>{children}</AppShell>
       </Suspense>

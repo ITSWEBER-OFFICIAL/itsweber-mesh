@@ -11,6 +11,7 @@ import {
   signSession,
   OIDC_STATE_COOKIE,
   OIDC_SESSION_COOKIE,
+  SESSION_IDLE_SECONDS,
   validateSessionSecret,
 } from "@/server/auth/oidc-session";
 import { safeRedirectTarget } from "@/server/auth/oidc-redirect";
@@ -152,7 +153,7 @@ export async function GET(req: NextRequest) {
     sameSite: "lax",
     secure: process.env["NODE_ENV"] === "production",
     path: "/",
-    maxAge: 60 * 60 * 24, // 24h
+    maxAge: SESSION_IDLE_SECONDS,
   });
   // Clear state cookie — single-use
   response.cookies.set({
