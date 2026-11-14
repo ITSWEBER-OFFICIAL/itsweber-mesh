@@ -57,7 +57,8 @@ export default async function DashboardPage() {
       authed = result.ok;
     }
   } catch {
-    // Build phase or misconfiguration — render dashboard with defaults
+    // Build phase or misconfiguration — fail closed, never render the dashboard unauthenticated
+    authed = false;
   }
 
   if (!authed) {
