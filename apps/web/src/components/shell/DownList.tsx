@@ -35,7 +35,7 @@ export function DownList({
     onError: (e) => toast.error("Prüfung fehlgeschlagen", e.message),
   });
 
-  const list = limit ? services.slice(0, limit) : services;
+  const list = limit !== undefined ? services.slice(0, limit) : services;
   return (
     <>
       {list.map((s) => (

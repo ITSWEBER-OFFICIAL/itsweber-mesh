@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AuthBanner } from "@/components/layout/AuthBanner";
 import { useMeshData } from "./useMeshData";
+import { useHints } from "./useHints";
 
 /* Mesh 2.0: one shell for every page. Floating pill below 1024 px, rail from 1024 px. */
 
@@ -49,6 +50,8 @@ const NAV = [
 function NavLinks({ withLabel }: { withLabel: boolean }) {
   const pathname = usePathname() ?? "/";
   const { overview } = useMeshData();
+  const hints = useHints();
+  const urgent = overview.bad + hints.urgent.length;
   return (
     <>
       {NAV.map((n) => {
@@ -58,7 +61,7 @@ function NavLinks({ withLabel }: { withLabel: boolean }) {
             : pathname === n.href ||
               pathname.startsWith(n.href + "/") ||
               (n.href === "/mehr" && (pathname.startsWith("/admin") || pathname.startsWith("/boards")));
-        const badge = n.href === "/hinweise" && overview.bad > 0 ? overview.bad : 0;
+        const badge = n.href === "/hinweise" ? urgent : 0;
         return (
           <Link
             key={n.href}

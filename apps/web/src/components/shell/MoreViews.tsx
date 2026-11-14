@@ -9,6 +9,7 @@ import type { NetworkWidgetData } from "@/app/api/widgets/network/route";
 import { Screen, Dot, Icon } from "./AppShell";
 import { DownList } from "./DownList";
 import { useMeshData } from "./useMeshData";
+import { useHints, HintList } from "./Hints";
 
 const getJson = <T,>(url: string, empty: T) => (): Promise<T> =>
   fetch(url).then((r) => (r.ok ? (r.json() as Promise<T>) : empty));
@@ -114,28 +115,45 @@ export function ServerView() {
   );
 }
 
-/* ── Hinweise (Phase 1: Störungen, „Im Blick“ folgt mit Phase 2) ─────────── */
+/* ── Hinweise ────────────────────────────────────────────────────────────── */
 export function HinweiseView() {
   const { down, pings, loading } = useMeshData();
+  const hints = useHints();
+  const urgent = down.length + hints.urgent.length;
   return (
-    <Screen title="Hinweise" small context={loading ? undefined : `${down.length} offen`}>
+    <Screen title="Hinweise" small context={loading ? undefined : `${urgent} dringend · ${hints.watch.length} im Blick`}>
       <section className="m-sec">
-        <h2 className="m-h">Dringend · {down.length}</h2>
-        {down.length === 0 ? (
+        <h2 className="m-h">Dringend · {urgent}</h2>
+        {urgent === 0 ? (
           <div className="m-msg">
             <Dot state="ok" />
             <div>
               <b>Nichts Dringendes</b>
-              <small>Alle geprüften Dienste antworten</small>
+              <small>Dienste, Server und Zertifikate sind in Ordnung</small>
             </div>
           </div>
         ) : (
-          <DownList services={down} pings={pings} />
+          <>
+            <HintList hints={hints.urgent} />
+            <DownList services={down} pings={pings} />
+          </>
         )}
       </section>
       <section className="m-sec">
-        <h2 className="m-h">Im Blick</h2>
-        <p className="m-note">Updates, Platten, Zertifikate und Unraid-Warnungen erscheinen hier mit Phase 2.</p>
+        <h2 className="m-h">Im Blick · {hints.watch.length}</h2>
+        {hints.loading ? (
+          <p className="m-note">Wird geprüft.</p>
+        ) : hints.failed ? (
+          <p className="m-note">Die Hinweise konnten nicht geladen werden.</p>
+        ) : hints.watch.length === 0 ? (
+          <p className="m-note">Keine Updates, keine gestoppten Container, kein Zertifikat läuft bald ab.</p>
+        ) : (
+          <HintList hints={hints.watch} />
+        )}
+        {hints.notes.map((n) => (
+          <p className="m-note" key={n}>{n}</p>
+        ))}
+        <p className="m-note">Platten und Unraid-Warnungen folgen.</p>
       </section>
     </Screen>
   );

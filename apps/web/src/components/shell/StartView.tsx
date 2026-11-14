@@ -9,10 +9,13 @@ import { Screen, Dot } from "./AppShell";
 import { Ring } from "./Ring";
 import { DownList } from "./DownList";
 import { useMeshData } from "./useMeshData";
+import { useHints, HintList } from "./Hints";
 
 export function StartView() {
   const { overview, services, pings, internal, health, down, loading } = useMeshData();
   const [selected, setSelected] = useState(-1);
+  const hints = useHints();
+  const urgent = down.length + hints.urgent.length;
 
   const { data: unraid } = useQuery<UnraidWidgetData>({
     queryKey: ["widget-unraid"],
@@ -41,7 +44,7 @@ export function StartView() {
       context={internal ? "Heimnetz · intern" : "Unterwegs · extern"}
       kanzel={
         <>
-          <Ring segments={overview.segments} urgent={overview.bad} selected={selected} onSelect={setSelected} />
+          <Ring segments={overview.segments} urgent={urgent} selected={selected} onSelect={setSelected} />
           <p className="m-say" aria-live="polite">
             {say.lead} <span>{say.rest}</span>
           </p>
@@ -49,21 +52,24 @@ export function StartView() {
       }
     >
       <section className="m-sec">
-        <h2 className="m-h">Dringend · {down.length}</h2>
-        {down.length === 0 ? (
+        <h2 className="m-h">Dringend · {urgent}</h2>
+        {urgent === 0 ? (
           <div className="m-msg">
             <Dot state="ok" />
             <div>
               <b>Nichts Dringendes</b>
-              <small>Alle geprüften Dienste antworten</small>
+              <small>Dienste, Server und Zertifikate sind in Ordnung</small>
             </div>
           </div>
         ) : (
-          <DownList services={down} pings={pings} limit={3} />
+          <>
+            <HintList hints={hints.urgent} limit={3} />
+            <DownList services={down} pings={pings} limit={Math.max(0, 3 - hints.urgent.length)} />
+          </>
         )}
-        {down.length > 3 && (
+        {(urgent > 3 || hints.watch.length > 0) && (
           <Link href="/hinweise" className="m-btn" style={{ alignSelf: "flex-start", marginTop: 8 }}>
-            Alle {down.length} ansehen
+            {urgent > 3 ? `Alle ${urgent} ansehen` : `Im Blick · ${hints.watch.length}`}
           </Link>
         )}
       </section>
