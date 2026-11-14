@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Hint, HintsResult } from "@/app/api/hints/route";
 
-const EMPTY: HintsResult = { hints: [], sources: [], checkedAt: 0 };
+const EMPTY: HintsResult = { hints: [], sources: [], certs: [], checkedAt: 0 };
 const NO_HINTS: Hint[] = [];
 
 /** Hinweise aus Zertifikaten, Updates und Unraid. Dienste, die nicht antworten,
@@ -25,6 +25,7 @@ export function useHints() {
     failed: isError,
     urgent: hints.filter((h) => h.level === "urgent"),
     watch: hints.filter((h) => h.level === "watch"),
+    certs: (data ?? EMPTY).certs,
     notes: (data ?? EMPTY).sources.filter((s) => !s.ok && s.note).map((s) => s.note as string),
   };
 }

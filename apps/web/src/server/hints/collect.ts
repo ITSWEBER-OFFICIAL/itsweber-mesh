@@ -2,11 +2,13 @@ import { connect } from "node:tls";
 import pLimit from "p-limit";
 import type { Config } from "@/server/config/schema";
 import { loadUnraidInstances } from "@/server/unraid/load";
+import { loadUnraidDetail } from "@/server/unraid/detail";
 import {
   certHints,
   certHosts,
   haUpdateHints,
   unraidHints,
+  unraidDetailHints,
   sortHints,
   type CertProbe,
   type HaUpdateEntity,
@@ -14,7 +16,13 @@ import {
   type SourceState,
 } from "./build";
 
-export type HintsResult = { hints: Hint[]; sources: SourceState[]; checkedAt: number };
+export type HintsResult = {
+  hints: Hint[];
+  sources: SourceState[];
+  /** Expiry of every certificate that could be read, for the web view. */
+  certs: { host: string; validTo: number }[];
+  checkedAt: number;
+};
 
 /* Certificates change rarely: one probe per host every six hours is enough. */
 const CERT_TTL_MS = 6 * 60 * 60 * 1000;
@@ -74,18 +82,21 @@ async function loadHaUpdates(ha: Config["integrations"]["homeAssistant"]): Promi
 export async function collectHints(cfg: Config, now: number = Date.now()): Promise<HintsResult> {
   const hints: Hint[] = [];
   const sources: SourceState[] = [];
+  const unraidCfg = cfg.integrations.unraid;
 
   const hosts = certHosts(cfg.services.filter((s) => s.enabled).flatMap((s) => [s.url, s.urlExternal, s.urlInternal]));
-  const [certs, ha, unraid] = await Promise.allSettled([
+  const [certs, ha, unraid, details] = await Promise.allSettled([
     probeCerts(hosts, now),
     loadHaUpdates(cfg.integrations.homeAssistant),
-    cfg.integrations.unraid.length > 0 ? loadUnraidInstances(cfg.integrations.unraid) : Promise.resolve(null),
+    unraidCfg.length > 0 ? loadUnraidInstances(unraidCfg) : Promise.resolve(null),
+    Promise.all(unraidCfg.map((u) => loadUnraidDetail(u).catch(() => null))),
   ]);
 
+  let certList: HintsResult["certs"] = [];
   if (certs.status === "fulfilled") {
     hints.push(...certHints(certs.value, now));
-    const failed = certs.value.filter((p) => !p.ok).length;
-    sources.push({ source: "certs", ok: true, note: `${certs.value.length - failed} von ${certs.value.length} Zertifikaten geprüft` });
+    certList = certs.value.flatMap((p) => (p.ok ? [{ host: p.host, validTo: p.validTo }] : []));
+    sources.push({ source: "certs", ok: true, note: `${certList.length} von ${certs.value.length} Zertifikaten geprüft` });
   } else {
     sources.push({ source: "certs", ok: false, note: "Zertifikate nicht geprüft" });
   }
@@ -108,5 +119,9 @@ export async function collectHints(cfg: Config, now: number = Date.now()): Promi
     sources.push({ source: "unraid", ok: false, note: "Unraid nicht abgefragt" });
   }
 
-  return { hints: sortHints(hints), sources, checkedAt: now };
+  if (details.status === "fulfilled") {
+    hints.push(...unraidDetailHints(details.value.filter((d) => d !== null), now));
+  }
+
+  return { hints: sortHints(hints), sources, certs: certList, checkedAt: now };
 }

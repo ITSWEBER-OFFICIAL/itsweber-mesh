@@ -76,11 +76,11 @@ export type UnraidWidgetData = {
   })[];
 };
 
-type Transport =
+export type Transport =
   | { kind: "socket"; socketPath: string }
   | { kind: "http"; host: string; port: number; protocol: "http:" | "https:" };
 
-function parseEndpoint(endpoint: string): Transport {
+export function parseEndpoint(endpoint: string): Transport {
   const trimmed = endpoint.trim();
 
   // Explicit socket request: "socket", "unix:..", "socket://..", or empty.
@@ -111,7 +111,7 @@ function parseEndpoint(endpoint: string): Transport {
   }
 }
 
-function graphqlCall(transport: Transport, apiKey: string, query: string): Promise<string> {
+export function graphqlCall(transport: Transport, apiKey: string, query: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({ query });
     const headers = {

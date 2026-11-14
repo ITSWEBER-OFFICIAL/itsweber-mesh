@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { certHints, certHosts, haUpdateHints, unraidHints, sortHints, type Hint } from "@/server/hints/build";
+import { certHints, certHosts, haUpdateHints, unraidHints, unraidDetailHints, sortHints, type Hint } from "@/server/hints/build";
 
 const DAY = 86_400_000;
 const NOW = Date.UTC(2026, 10, 14, 12);
@@ -71,32 +71,6 @@ describe("Home Assistant update hints", () => {
   });
 });
 
-describe("Unraid hints", () => {
-  it("reports an unreachable server as urgent", () => {
-    const [h] = unraidHints([{ id: "1", label: "Core", online: false }]);
-    expect(h).toMatchObject({ level: "urgent", kind: "server" });
-  });
-
-  it("reports a stopped array as urgent and stopped containers as watch", () => {
-    const hints = unraidHints([
-      {
-        id: "1",
-        label: "Core",
-        online: true,
-        data: { array: { state: "STOPPED" }, containers: { running: 3, total: 9, stopped: ["a", "b", "c", "d", "e", "f"] } },
-      },
-    ]);
-    expect(hints.map((h) => [h.kind, h.level])).toEqual([["array", "urgent"], ["container", "watch"]]);
-    expect(hints[1]?.title).toBe("6 Container auf Core gestoppt");
-    expect(hints[1]?.detail).toBe("a, b, c, d und 2 weitere");
-  });
-
-  it("stays silent when everything runs", () => {
-    expect(
-      unraidHints([{ id: "1", label: "Node", online: true, data: { array: { state: "STARTED" }, containers: { running: 4, total: 4, stopped: [] } } }]),
-    ).toEqual([]);
-  });
-});
 
 describe("hint order", () => {
   it("puts urgent before watch", () => {

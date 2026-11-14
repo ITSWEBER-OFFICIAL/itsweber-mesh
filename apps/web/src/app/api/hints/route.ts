@@ -26,6 +26,6 @@ export async function GET(req: Request) {
     return NextResponse.json(await cached.result, { headers: { "Cache-Control": "no-store" } });
   } catch {
     cached = null;
-    return NextResponse.json({ hints: [], sources: [], checkedAt: now } satisfies HintsResult, { status: 500 });
+    return NextResponse.json({ hints: [], sources: [], certs: [], checkedAt: now } satisfies HintsResult, { status: 500 });
   }
 }
