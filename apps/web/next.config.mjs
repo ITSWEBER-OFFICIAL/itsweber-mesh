@@ -12,6 +12,18 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_VERSION: pkg.version,
   },
+  async headers() {
+    return [
+      {
+        // The browser must always revalidate the service worker, otherwise an old shell sticks for a day.
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
+      },
+    ];
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },

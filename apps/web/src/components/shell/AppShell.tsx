@@ -52,7 +52,12 @@ function NavLinks({ withLabel }: { withLabel: boolean }) {
   return (
     <>
       {NAV.map((n) => {
-        const active = n.href === "/" ? pathname === "/" : pathname === n.href || pathname.startsWith(n.href + "/");
+        const active =
+          n.href === "/"
+            ? pathname === "/"
+            : pathname === n.href ||
+              pathname.startsWith(n.href + "/") ||
+              (n.href === "/mehr" && (pathname.startsWith("/admin") || pathname.startsWith("/boards")));
         const badge = n.href === "/hinweise" && overview.bad > 0 ? overview.bad : 0;
         return (
           <Link

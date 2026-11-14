@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Providers } from "@/components/providers";
 import { ThemeSync } from "@/components/layout/ThemeSync";
-import { DashboardHeader } from "@/components/layout/DashboardHeader";
+import { AppShell } from "@/components/shell/AppShell";
 import { EditModeProvider } from "@/components/layout/EditModeContext";
 import { AdminSidebar } from "./AdminSidebar";
 import { readConfig } from "@/server/config/store";
@@ -46,18 +46,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <ThemeSync />
       </Suspense>
       <EditModeProvider>
-        <div className="app-layout admin-app-layout">
-          <Suspense fallback={null}>
-            <DashboardHeader />
-          </Suspense>
-
-          <main className="main-content admin-main-content">
-            <div className="admin-body">
-              <AdminSidebar />
-              <div className="admin-pane">{children}</div>
+        <Suspense fallback={null}>
+          <AppShell>
+            <div className="m-admin">
+              <h1 className="m-admin-title">Verwaltung</h1>
+              <div className="admin-body">
+                <AdminSidebar />
+                <div className="admin-pane">{children}</div>
+              </div>
             </div>
-          </main>
-        </div>
+          </AppShell>
+        </Suspense>
       </EditModeProvider>
     </Providers>
   );

@@ -244,3 +244,28 @@ html[data-theme="dark"] .m-switch button[aria-pressed="true"] { color: var(--m-o
   }
   .m-chips { flex-wrap: wrap; overflow: visible; }
 }
+
+/* ── Verwaltung im neuen Gerüst ─────────────────────────────────────────── */
+.m-admin { padding: calc(14px + env(safe-area-inset-top, 0px)) 14px 0; max-width: 1280px; margin: 0 auto; }
+.m-admin-title { font: 650 22px/1.2 var(--m-f-display); margin: 4px 4px 14px; }
+.m-admin-menu { display: none; }
+.m-admin .admin-card { max-width: 100%; }
+@media (max-width: 880px) {
+  .m-admin-menu {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+    min-height: 48px; padding: 0 12px; border-radius: 10px; color: var(--m-ink); font: 600 15px var(--m-f); cursor: pointer;
+  }
+  .m-admin .admin-sidebar > .admin-nav-group { display: none; }
+  .m-admin .admin-sidebar.admin-sidebar-open > .admin-nav-group { display: block; }
+  .m-admin .admin-nav-link, .m-admin .admin-nav-group-header { min-height: 44px; }
+  .m-admin input, .m-admin select, .m-admin textarea { font-size: 16px; }
+  /* Listen: am Telefon zählt der Name, Symbol und Kategorie-Marke weichen */
+  .m-admin .admin-card { padding: 16px 14px; }
+  .m-admin .admin-list-row-badge, .m-admin .admin-list-row-icon { display: none; }
+  .m-admin .admin-list-row-body { min-width: 0; flex: 1; }
+  .m-admin .icon-btn { min-width: 44px; min-height: 44px; }
+}
+@media (min-width: 1024px) {
+  .m-admin { padding: 6px 6px 24px; }
+  .m-admin .admin-sidebar { top: 18px; }
+}

@@ -20,8 +20,11 @@ const FormSchema = z.object({
 });
 type Form = z.infer<typeof FormSchema>;
 
+/** Stable empty default: a fresh [] per render would retrigger the sync effect below while loading. */
+const NONE: never[] = [];
+
 export default function AdminCamerasPage() {
-  const { data: cameras = [] } = trpc.cameras.list.useQuery();
+  const { data: cameras = NONE } = trpc.cameras.list.useQuery();
   const utils = trpc.useUtils();
   const toast = useToast();
   const onErr = (e: { message?: string }) => toast.error("Fehler", e?.message);

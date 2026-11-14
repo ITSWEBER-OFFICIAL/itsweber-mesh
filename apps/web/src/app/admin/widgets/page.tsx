@@ -9,8 +9,11 @@ import { WidgetModal, WIDGET_KINDS, WIDGET_KIND_COLOR } from "@/components/widge
 import { getWidgetDefinition } from "@/components/widgets/registry";
 import type { WidgetInstance } from "@/server/config/schema";
 
+/** Stable empty default: a fresh [] per render would retrigger the sync effect below while loading. */
+const NONE: never[] = [];
+
 export default function AdminWidgetsPage() {
-  const { data: widgets = [] } = trpc.widgets.list.useQuery();
+  const { data: widgets = NONE } = trpc.widgets.list.useQuery();
   const utils = trpc.useUtils();
   const toast = useToast();
   const onErr = (e: { message?: string }) => toast.error("Fehler", e?.message);

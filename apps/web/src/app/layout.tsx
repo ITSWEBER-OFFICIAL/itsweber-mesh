@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./mesh2.css";
 import { readConfigForBuild } from "@/server/config/store";
+import { PwaRegister } from "@/components/shell/PwaRegister";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -19,13 +20,31 @@ export async function generateMetadata(): Promise<Metadata> {
     return {
       title: cfg.meta.name,
       description: cfg.meta.subtitle,
-      icons: { icon: "/favicon.svg" },
+      icons: {
+        icon: [
+          { url: "/favicon.ico", sizes: "any" },
+          { url: "/icons/app-icon-32.png", sizes: "32x32", type: "image/png" },
+          { url: "/icons/app-icon-192.png", sizes: "192x192", type: "image/png" },
+        ],
+        apple: [{ url: "/icons/app-icon-180.png", sizes: "180x180" }],
+      },
+      appleWebApp: { capable: true, title: "Mesh", statusBarStyle: "black-translucent" },
+      formatDetection: { telephone: false },
     };
   } catch {
     return {
       title: "ITSWEBER Mesh",
       description: "Homelab Dashboard",
-      icons: { icon: "/favicon.svg" },
+      icons: {
+        icon: [
+          { url: "/favicon.ico", sizes: "any" },
+          { url: "/icons/app-icon-32.png", sizes: "32x32", type: "image/png" },
+          { url: "/icons/app-icon-192.png", sizes: "192x192", type: "image/png" },
+        ],
+        apple: [{ url: "/icons/app-icon-180.png", sizes: "180x180" }],
+      },
+      appleWebApp: { capable: true, title: "Mesh", statusBarStyle: "black-translucent" },
+      formatDetection: { telephone: false },
     };
   }
 }
@@ -91,6 +110,7 @@ export default function RootLayout({
         } : undefined}
       >
         {children}
+        <PwaRegister />
       </body>
     </html>
   );

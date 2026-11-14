@@ -60,8 +60,11 @@ const CATEGORY_META: Record<Service["category"], { icon: React.ReactNode; color:
   gaming:         { icon: <Gamepad2 size={14} />, color: "var(--cat-tools)",          label: "Gaming" },
 };
 
+/** Stable empty default: a fresh [] per render would retrigger the sync effect below while loading. */
+const NONE: never[] = [];
+
 export default function AdminServicesPage() {
-  const { data: services = [] } = trpc.services.list.useQuery();
+  const { data: services = NONE } = trpc.services.list.useQuery();
   const utils = trpc.useUtils();
   const toast = useToast();
   const onErr = (e: { message?: string }) => toast.error("Fehler", e?.message);
