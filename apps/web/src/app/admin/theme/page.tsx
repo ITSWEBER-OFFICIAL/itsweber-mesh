@@ -9,7 +9,7 @@ import { useRef, useState } from "react";
 import { useToast } from "@/components/ui/Toast";
 
 const ThemeSchema = z.object({
-  preset: z.enum(["dark", "light", "terminal", "itsweber", "slate", "modern-light", "graphite-command"]),
+  preset: z.enum(["system", "light", "dark"]),
   accent: z.string().regex(/^#[0-9a-f]{6}$/i, "Ungültiger Hex-Farbwert"),
   bgKind: z.enum(["solid", "image"]),
   bgSrc: z.string().optional(),
@@ -33,13 +33,9 @@ const PRESETS: {
   accent: string;
   desc: string;
 }[] = [
-  { value: "dark",          label: "Dark",          bg: "#0e1116", surface: "#161b22", accent: "#3ba7a7", desc: "Standard — Navy + Teal" },
-  { value: "light",         label: "Light",         bg: "#f6f8fa", surface: "#ffffff", accent: "#0f766e", desc: "Hell — Weiß + Teal" },
-  { value: "terminal",      label: "Terminal",      bg: "#0a0d0a", surface: "#0f130f", accent: "#3fb950", desc: "Hacker — Schwarz + Grün" },
-  { value: "itsweber",      label: "ITSWEBER",      bg: "#16222e", surface: "#1c2a37", accent: "#15779b", desc: "Slate Petrol — Liquid Glass" },
-  { value: "slate",         label: "Slate",         bg: "#1a1612", surface: "#241f1a", accent: "#d97706", desc: "Warm Dark — Amber + Braun" },
-  { value: "modern-light",  label: "Modern Light",  bg: "#f8f9fa", surface: "#ffffff", accent: "#0f766e", desc: "Notion-Style — Hell + Teal" },
-  { value: "graphite-command", label: "Graphite Command", bg: "#07090d", surface: "#10161f", accent: "#36d6c2", desc: "Command-Center — Graphit + Mint" },
+  { value: "system", label: "Gerät",  bg: "linear-gradient(90deg,#f4f2ec 50%,#0c151c 50%)", surface: "linear-gradient(90deg,#ffffff 50%,#121f28 50%)", accent: "#14b8a6", desc: "Folgt dem Gerät" },
+  { value: "light",  label: "Hell",   bg: "#f4f2ec", surface: "#ffffff", accent: "#0f766e", desc: "Signal auf Papier" },
+  { value: "dark",   label: "Dunkel", bg: "#0c151c", surface: "#121f28", accent: "#2dd4bf", desc: "Signal auf Petrol" },
 ];
 
 export default function AdminThemePage() {
@@ -116,7 +112,7 @@ export default function AdminThemePage() {
       >
         {/* Preset Kacheln */}
         <div className="admin-field">
-          <label className="admin-label">Design-Preset</label>
+          <label className="admin-label">Thema</label>
           <div className="grid gap-[12px] mt-[4px]" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))" }}>
             {PRESETS.map((p) => (
               <button

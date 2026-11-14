@@ -40,9 +40,15 @@ export function ThemeSync() {
     const { preset, accent, background, customCss, backgroundPattern } = settings.theme;
     const html = document.documentElement;
 
-    if (html.getAttribute("data-theme") !== preset) {
-      html.setAttribute("data-theme", preset);
-    }
+    // v18: "system" folgt dem Gerät und reagiert auf den Wechsel im laufenden Betrieb
+    const mq = window.matchMedia("(prefers-color-scheme: light)");
+    const applyPreset = () => {
+      const resolved = preset === "system" ? (mq.matches ? "light" : "dark") : preset;
+      html.setAttribute("data-theme-pref", preset);
+      if (html.getAttribute("data-theme") !== resolved) html.setAttribute("data-theme", resolved);
+    };
+    applyPreset();
+    mq.addEventListener("change", applyPreset);
     if (html.getAttribute("data-bg-pattern") !== backgroundPattern) {
       html.setAttribute("data-bg-pattern", backgroundPattern);
     }
@@ -87,6 +93,7 @@ export function ThemeSync() {
       body.style.backgroundAttachment = "";
       body.style.backgroundRepeat = "";
     }
+    return () => mq.removeEventListener("change", applyPreset);
   }, [settings]);
 
   return null;

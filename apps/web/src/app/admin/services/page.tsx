@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Plus, Pencil, Trash2, Save, LayoutGrid, Tv, Home, Wrench, Globe, Server, Search, Upload, X, Wand2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, LayoutGrid, Tv, Home, Wrench, Globe, Server, Search, Upload, X, Wand2, Gamepad2, PanelsTopLeft } from "lucide-react";
 import type { IconSuggestion } from "@/app/api/icons/suggest/route";
 import { SortableList } from "@/components/ui/SortableList";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/Modal";
@@ -11,13 +11,17 @@ import { z } from "zod";
 import { trpc } from "@/lib/trpc-client";
 import { useToast } from "@/components/ui/Toast";
 import { SERVICE_CATALOG, type ServiceCatalogEntry } from "@/lib/service-catalog";
-import type { Service } from "@/server/config/schema";
+import { ServiceCategorySchema, ServiceProtectionSchema, type Service } from "@/server/config/schema";
 
 const ServiceFormSchema = z.object({
   name: z.string().min(1, "Name erforderlich"),
   url: z.string().url("Gültige URL erforderlich"),
+  /** v18: leer oder gültige URL */
+  urlInternal: z.union([z.literal(""), z.string().url("Gültige URL erforderlich")]).optional(),
+  urlExternal: z.union([z.literal(""), z.string().url("Gültige URL erforderlich")]).optional(),
+  protection: ServiceProtectionSchema.default("unknown"),
   description: z.string().optional(),
-  category: z.enum(["infrastructure", "media", "smart-home", "tools", "external"]),
+  category: ServiceCategorySchema,
   icon: z.string().default("globe"),
   color: z.string().optional(),
   enabled: z.boolean().default(true),
@@ -30,19 +34,30 @@ const ServiceFormSchema = z.object({
 type ServiceForm = z.infer<typeof ServiceFormSchema>;
 
 const CATEGORIES: { value: Service["category"]; label: string }[] = [
-  { value: "infrastructure", label: "Infrastructure" },
-  { value: "media",          label: "Media" },
-  { value: "smart-home",     label: "Smart Home" },
-  { value: "tools",          label: "Tools" },
-  { value: "external",       label: "External" },
+  { value: "infrastructure", label: "Verwaltung" },
+  { value: "smart-home",     label: "Zuhause" },
+  { value: "media",          label: "Medien" },
+  { value: "web",            label: "Web" },
+  { value: "gaming",         label: "Gaming" },
+  { value: "tools",          label: "Werkzeuge" },
+  { value: "external",       label: "Extern" },
+];
+
+const PROTECTIONS: { value: Service["protection"]; label: string }[] = [
+  { value: "unknown",   label: "Nicht festgelegt" },
+  { value: "authentik", label: "Hinter Authentik" },
+  { value: "login",     label: "Eigener Login" },
+  { value: "public",    label: "Öffentlich" },
 ];
 
 const CATEGORY_META: Record<Service["category"], { icon: React.ReactNode; color: string; label: string }> = {
-  infrastructure: { icon: <Server size={14} />,  color: "var(--cat-infrastructure)", label: "Infrastructure" },
-  media:          { icon: <Tv size={14} />,       color: "var(--cat-media)",          label: "Media" },
-  "smart-home":   { icon: <Home size={14} />,     color: "var(--cat-smart-home)",     label: "Smart Home" },
-  tools:          { icon: <Wrench size={14} />,   color: "var(--cat-tools)",          label: "Tools" },
-  external:       { icon: <Globe size={14} />,    color: "var(--cat-external)",       label: "External" },
+  infrastructure: { icon: <Server size={14} />,  color: "var(--cat-infrastructure)", label: "Verwaltung" },
+  media:          { icon: <Tv size={14} />,       color: "var(--cat-media)",          label: "Medien" },
+  "smart-home":   { icon: <Home size={14} />,     color: "var(--cat-smart-home)",     label: "Zuhause" },
+  tools:          { icon: <Wrench size={14} />,   color: "var(--cat-tools)",          label: "Werkzeuge" },
+  external:       { icon: <Globe size={14} />,    color: "var(--cat-external)",       label: "Extern" },
+  web:            { icon: <PanelsTopLeft size={14} />, color: "var(--cat-external)",  label: "Web" },
+  gaming:         { icon: <Gamepad2 size={14} />, color: "var(--cat-tools)",          label: "Gaming" },
 };
 
 export default function AdminServicesPage() {
@@ -92,6 +107,9 @@ export default function AdminServicesPage() {
               id: editing !== "new" ? editing.id : undefined,
               name: data.name,
               url: data.url,
+              urlInternal: data.urlInternal ?? "",
+              urlExternal: data.urlExternal ?? "",
+              protection: data.protection,
               description: data.description,
               category: data.category,
               icon: data.icon,
@@ -363,6 +381,9 @@ function ServiceFormModal({ service, onClose, onSubmit, isPending }: {
       ? {
           name: service.name,
           url: service.url,
+          urlInternal: service.urlInternal ?? "",
+          urlExternal: service.urlExternal ?? "",
+          protection: service.protection,
           description: service.description,
           category: service.category,
           icon: service.icon,
@@ -373,7 +394,7 @@ function ServiceFormModal({ service, onClose, onSubmit, isPending }: {
           pingUrl: service.pingTarget.url ?? "",
           pingTimeoutMs: service.pingTarget.timeoutMs,
         }
-      : { category: "tools", pingKind: "http", pingTimeoutMs: 3000, enabled: true, pinnedToHome: false, icon: "globe" },
+      : { category: "tools", protection: "unknown", urlInternal: "", urlExternal: "", pingKind: "http", pingTimeoutMs: 3000, enabled: true, pinnedToHome: false, icon: "globe" },
   });
   const { register, handleSubmit, formState: { errors } } = methods;
 
@@ -409,6 +430,23 @@ function ServiceFormModal({ service, onClose, onSubmit, isPending }: {
 
               <Field label="URL" error={errors.url?.message}>
                 <input {...register("url")} className="admin-input" placeholder="https://my-service.example.com" />
+              </Field>
+
+              <div className="admin-grid-2">
+                <Field label="Adresse intern (optional)" error={errors.urlInternal?.message}>
+                  <input {...register("urlInternal")} className="admin-input" placeholder="http://10.0.0.10:8123" />
+                </Field>
+                <Field label="Adresse extern (optional)" error={errors.urlExternal?.message}>
+                  <input {...register("urlExternal")} className="admin-input" placeholder="https://dienst.example.com" />
+                </Field>
+              </div>
+
+              <Field label="Absicherung" error={errors.protection?.message}>
+                <select {...register("protection")} className="admin-input">
+                  {PROTECTIONS.map((p) => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
+                  ))}
+                </select>
               </Field>
 
               <Field label="Beschreibung" error={errors.description?.message}>

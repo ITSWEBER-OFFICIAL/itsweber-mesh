@@ -634,6 +634,73 @@ function migrateV16ToV17(raw: Record<string, unknown>): Record<string, unknown> 
   return next;
 }
 
+/* ── v17 → v18 ──────────────────────────────────────────────────────────────
+   Mesh 2.0.
+   - theme.preset kennt nur noch system, light, dark. Der alte Name bleibt in
+     theme.legacyPreset, Akzent, Hintergrund, Muster und Custom CSS bleiben
+   - services[] bekommen urlInternal, urlExternal und protection. Die bisherige
+     url bleibt und wird nach ihrem Host als intern oder extern einsortiert
+*/
+const V18_PRESETS = new Set(["system", "light", "dark"]);
+const V17_LIGHT_PRESETS = new Set(["light", "modern-light"]);
+
+export function mapLegacyPreset(preset: unknown): "system" | "light" | "dark" {
+  if (typeof preset !== "string" || preset === "graphite-command") return "system";
+  return V17_LIGHT_PRESETS.has(preset) ? "light" : "dark";
+}
+
+/** True for addresses that only resolve inside the home network. */
+export function isInternalUrl(url: unknown): boolean | null {
+  if (typeof url !== "string") return null;
+  let host: string;
+  try {
+    host = new URL(url).hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  } catch {
+    return null;
+  }
+  if (!host) return null;
+  if (host === "localhost" || !host.includes(".") && !host.includes(":")) return true;
+  if (/\.(local|lan|home|internal|localdomain|home\.arpa)$/.test(host)) return true;
+  const v4 = /^(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}$/.exec(host);
+  if (v4) {
+    const a = Number(v4[1]);
+    const b = Number(v4[2]);
+    return (
+      a === 10 || a === 127 ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      (a === 169 && b === 254) ||
+      (a === 100 && b >= 64 && b <= 127)
+    );
+  }
+  if (host.includes(":")) return host === "::1" || /^f[cd]/.test(host) || /^fe[89ab]/.test(host);
+  return false;
+}
+
+function migrateV17ToV18(raw: Record<string, unknown>): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...raw, version: 18 };
+
+  const theme = { ...((next["theme"] as Record<string, unknown> | undefined) ?? {}) };
+  const oldPreset = theme["preset"];
+  if (typeof oldPreset === "string" && typeof theme["legacyPreset"] !== "string") {
+    theme["legacyPreset"] = oldPreset;
+  }
+  theme["preset"] = mapLegacyPreset(oldPreset);
+  next["theme"] = theme;
+
+  const services = (next["services"] as Record<string, unknown>[] | undefined) ?? [];
+  next["services"] = services.map((s) => {
+    const out: Record<string, unknown> = { ...s };
+    const internal = isInternalUrl(s["url"]);
+    if (internal === true && typeof out["urlInternal"] !== "string") out["urlInternal"] = s["url"];
+    if (internal === false && typeof out["urlExternal"] !== "string") out["urlExternal"] = s["url"];
+    if (typeof out["protection"] !== "string") out["protection"] = "unknown";
+    return out;
+  });
+
+  return next;
+}
+
 export const migrations: Migration[] = [
   { from: 1,  to: 2,  migrate: migrateV1ToV2 },
   { from: 2,  to: 3,  migrate: migrateV2ToV3 },
@@ -651,6 +718,7 @@ export const migrations: Migration[] = [
   { from: 14, to: 15, migrate: migrateV14ToV15 },
   { from: 15, to: 16, migrate: migrateV15ToV16 },
   { from: 16, to: 17, migrate: migrateV16ToV17 },
+  { from: 17, to: 18, migrate: migrateV17ToV18 },
 ];
 
 export function runMigrations(raw: Record<string, unknown>): Record<string, unknown> {
@@ -667,4 +735,4 @@ export function runMigrations(raw: Record<string, unknown>): Record<string, unkn
   return current;
 }
 
-export const CURRENT_VERSION: Config["version"] = 17;
+export const CURRENT_VERSION: Config["version"] = 18;

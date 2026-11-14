@@ -29,6 +29,8 @@ const ICON_CLASS: Record<Service["category"], string> = {
   "media":          "icon-media",
   "tools":          "icon-tools",
   "external":       "icon-external",
+  "web":            "icon-external",
+  "gaming":         "icon-tools",
 };
 
 const EMOJI: Record<Service["category"], string> = {
@@ -37,6 +39,8 @@ const EMOJI: Record<Service["category"], string> = {
   "media":          "🎬",
   "tools":          "🔧",
   "external":       "🌐",
+  "web":            "🌐",
+  "gaming":         "🎮",
 };
 
 const CATEGORY_LABEL: Record<Service["category"], string> = {
@@ -45,6 +49,8 @@ const CATEGORY_LABEL: Record<Service["category"], string> = {
   "media":          "Media",
   "tools":          "Tools",
   "external":       "Extern",
+  "web":            "Web",
+  "gaming":         "Gaming",
 };
 
 const DELAY_CLASS = [

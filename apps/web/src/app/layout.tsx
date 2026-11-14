@@ -44,7 +44,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let theme = "dark";
+  let theme: "system" | "light" | "dark" = "system";
   let customCss = "";
   let accent = "#3ba7a7";
   let bgImageSrc = "";
@@ -70,11 +70,17 @@ export default function RootLayout({
         var t = localStorage.getItem('itsweber-mesh:active-tab');
         if (t) document.documentElement.setAttribute('data-tab', t);
       } catch(e){}
+      try {
+        var d = document.documentElement;
+        if (d.getAttribute('data-theme-pref') === 'system') {
+          d.setAttribute('data-theme', matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        }
+      } catch(e){}
     })();
   `;
 
   return (
-    <html lang="de" data-theme={theme} data-tab="overview" data-bg-pattern={bgPattern}>
+    <html lang="de" data-theme={theme === "light" ? "light" : "dark"} data-theme-pref={theme} data-tab="overview" suppressHydrationWarning data-bg-pattern={bgPattern}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: earlyHtmlAttrs }} />
         <style
