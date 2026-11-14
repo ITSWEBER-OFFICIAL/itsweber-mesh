@@ -74,11 +74,11 @@ export default function AdminServicesPage() {
   useEffect(() => { setItems(services); }, [services]);
 
   const upsert = trpc.services.upsert.useMutation({
-    onSuccess: () => { utils.services.list.invalidate(); setEditing(null); toast.success("Service gespeichert"); },
+    onSuccess: () => { utils.services.list.invalidate(); utils.services.listLite.invalidate(); setEditing(null); toast.success("Service gespeichert"); },
     onError: onErr,
   });
   const del = trpc.services.delete.useMutation({
-    onSuccess: () => { utils.services.list.invalidate(); toast.success("Service gelöscht"); },
+    onSuccess: () => { utils.services.list.invalidate(); utils.services.listLite.invalidate(); toast.success("Service gelöscht"); },
     onError: onErr,
   });
   const reorder = trpc.services.reorder.useMutation({
@@ -201,7 +201,7 @@ function ImportModal({ onClose }: { onClose: () => void }) {
   const run = trpc.services.import.useMutation({
     onSuccess: (res) => {
       if (!res.applied) return;
-      utils.services.list.invalidate();
+      utils.services.list.invalidate(); utils.services.listLite.invalidate();
       toast.success("Liste übernommen", `${res.added.length} neu, ${res.updated.length} ergänzt`);
       onClose();
     },

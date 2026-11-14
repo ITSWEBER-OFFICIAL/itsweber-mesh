@@ -9,7 +9,7 @@ const NO_SERVICES: Service[] = [];
 
 /** Shared data for shell, Start, Dienste and Hinweise. React Query dedupes the requests. */
 export function useMeshData() {
-  const { data: services = NO_SERVICES, isLoading } = trpc.services.list.useQuery(undefined, { staleTime: 30_000 });
+  const { data: services = NO_SERVICES, isLoading } = trpc.services.listLite.useQuery(undefined, { staleTime: 30_000 });
   const { data: pings } = trpc.status.all.useQuery(undefined, { refetchInterval: 15_000 });
   const { data: network } = trpc.status.network.useQuery(undefined, { staleTime: 60_000 });
 

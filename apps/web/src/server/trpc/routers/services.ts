@@ -19,6 +19,15 @@ export const servicesRouter = router({
     return config.services.sort((a, b) => a.sortOrder - b.sortOrder);
   }),
 
+  /** v18: same list without embedded icons. Uploaded icons are data URLs and make the
+   *  full list megabytes large, the new views do not show them and poll from mobile networks. */
+  listLite: protectedProcedure.query(() => {
+    const config = readConfig();
+    return config.services
+      .map((s) => (s.icon.startsWith("data:") ? { ...s, icon: "globe" } : s))
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  }),
+
   upsert: adminProcedure
     .input(ServiceUpsertSchema)
     .mutation(async ({ input }) => {
