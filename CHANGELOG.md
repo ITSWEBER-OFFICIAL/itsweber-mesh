@@ -5,6 +5,17 @@ All notable changes to ITSWEBER Mesh are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-beta.2] — 2026-11-14
+
+### Added
+
+- Hints: certificates of all https services (watch below 21 days, urgent below 3 days or expired), pending Home Assistant updates, stopped containers per Unraid server, array not started, Unraid server unreachable. Start, ring and the bell count urgent hints.
+- Sliding OIDC session: 7 days idle, 30 days absolute. The app renews it when opened or brought back to the foreground.
+
+### Changed
+
+- The Unraid query lives in a server module and reports the names of stopped containers.
+
 ## [2.0.0-beta.1] — 2026-11-14
 
 Mesh 2.0, phase 1. Mobile first, installable, one look in light and dark.
