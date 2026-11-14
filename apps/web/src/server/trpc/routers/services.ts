@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { router, protectedProcedure, adminProcedure } from "../init";
 import { readConfig, writeConfig } from "../../config/store";
 import { ServiceSchema, GridLayoutSchema } from "../../config/schema";
+import { ImportListSchema, planImport } from "@/lib/service-import";
 
 const ServiceUpsertSchema = ServiceSchema.omit({ id: true }).partial().extend({
   id: z.string().uuid().optional(),
@@ -53,6 +54,20 @@ export const servicesRouter = router({
 
       await writeConfig(config);
       return service;
+    }),
+
+  /** v18: merge a list of services. Without apply it only reports what would change. */
+  import: adminProcedure
+    .input(z.object({ entries: ImportListSchema, apply: z.boolean().default(false) }))
+    .mutation(async ({ input }) => {
+      const config = readConfig();
+      const boardId = config.boards.find((b) => b.isHome)?.id ?? "home";
+      const plan = planImport(config.services, input.entries, boardId);
+      if (input.apply && (plan.added.length > 0 || plan.updated.length > 0)) {
+        config.services = plan.services;
+        await writeConfig(config);
+      }
+      return { applied: input.apply, added: plan.added, updated: plan.updated, unchanged: plan.unchanged };
     }),
 
   delete: adminProcedure

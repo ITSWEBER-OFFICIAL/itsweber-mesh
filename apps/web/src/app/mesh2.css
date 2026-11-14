@@ -269,3 +269,8 @@ html[data-theme="dark"] .m-switch button[aria-pressed="true"] { color: var(--m-o
   .m-admin { padding: 6px 6px 24px; }
   .m-admin .admin-sidebar { top: 18px; }
 }
+
+/* Alte Knöpfe: weiße Schrift trug nur auf den früheren Akzentfarben */
+html[data-theme="light"] { --brand-hover: #0d6b63; }
+html[data-theme="dark"] .btn-primary { color: var(--m-on-acc); }
+.btn-primary, .btn-ghost { min-height: 44px; }

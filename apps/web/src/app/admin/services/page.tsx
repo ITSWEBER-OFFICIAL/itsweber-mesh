@@ -11,6 +11,7 @@ import { z } from "zod";
 import { trpc } from "@/lib/trpc-client";
 import { useToast } from "@/components/ui/Toast";
 import { SERVICE_CATALOG, type ServiceCatalogEntry } from "@/lib/service-catalog";
+import { ImportListSchema } from "@/lib/service-import";
 import { ServiceCategorySchema, ServiceProtectionSchema, type Service } from "@/server/config/schema";
 
 const ServiceFormSchema = z.object({
@@ -85,6 +86,7 @@ export default function AdminServicesPage() {
   });
 
   const [editing, setEditing] = useState<Service | null | "new">(null);
+  const [importing, setImporting] = useState(false);
 
   return (
     <div className="admin-card">
@@ -96,9 +98,14 @@ export default function AdminServicesPage() {
             <div className="admin-card-sub">{items.length} Einträge konfiguriert</div>
           </div>
         </div>
-        <button type="button" onClick={() => setEditing("new")} className="btn-primary">
-          <Plus size={14} />Hinzufügen
-        </button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button type="button" onClick={() => setImporting(true)} className="btn-ghost">
+            <Upload size={14} />Liste einlesen
+          </button>
+          <button type="button" onClick={() => setEditing("new")} className="btn-primary">
+            <Plus size={14} />Hinzufügen
+          </button>
+        </div>
       </div>
 
       {editing && (
@@ -130,6 +137,8 @@ export default function AdminServicesPage() {
           isPending={upsert.isPending}
         />
       )}
+
+      {importing && <ImportModal onClose={() => setImporting(false)} />}
 
       {items.length === 0 && (
         <div className="int-empty">Noch keine Services konfiguriert.</div>
@@ -175,6 +184,93 @@ export default function AdminServicesPage() {
         }}
       />
     </div>
+  );
+}
+
+/* ── Liste einlesen (v18) ────────────────────────────────────────────────── */
+const IMPORT_EXAMPLE = `[
+  { "name": "Emby", "urlExternal": "https://emby.example.net", "category": "media", "protection": "login" },
+  { "name": "Status-API", "urlExternal": "https://api.example.net", "category": "gaming", "protection": "public", "expectStatus": [404] }
+]`;
+
+function ImportModal({ onClose }: { onClose: () => void }) {
+  const utils = trpc.useUtils();
+  const toast = useToast();
+  const [text, setText] = useState("");
+  const [parseError, setParseError] = useState<string | null>(null);
+  const run = trpc.services.import.useMutation({
+    onSuccess: (res) => {
+      if (!res.applied) return;
+      utils.services.list.invalidate();
+      toast.success("Liste übernommen", `${res.added.length} neu, ${res.updated.length} ergänzt`);
+      onClose();
+    },
+    onError: (e) => toast.error("Einlesen fehlgeschlagen", e.message),
+  });
+  const preview = run.data && !run.data.applied ? run.data : null;
+
+  function submit(apply: boolean) {
+    setParseError(null);
+    const parsed = ImportListSchema.safeParse((() => { try { return JSON.parse(text); } catch { return null; } })());
+    if (!parsed.success) {
+      setParseError("Das ist keine gültige Liste. Erwartet wird JSON wie im Beispiel, jeder Eintrag braucht Name und mindestens eine Adresse.");
+      return;
+    }
+    run.mutate({ entries: parsed.data, apply });
+  }
+
+  return (
+    <Modal onClose={onClose} size="lg">
+      <ModalHeader title="Liste einlesen" subtitle="Vorhandene Dienste werden nur ergänzt, nie überschrieben" onClose={onClose} />
+      <ModalBody>
+        <div className="form-stack">
+          <div className="admin-field">
+            <label className="admin-label" htmlFor="import-json">Dienste als JSON</label>
+            <textarea
+              id="import-json"
+              className="admin-input font-mono"
+              rows={10}
+              value={text}
+              onChange={(e) => { setText(e.target.value); run.reset(); }}
+              placeholder={IMPORT_EXAMPLE}
+              spellCheck={false}
+            />
+            <input
+              type="file"
+              accept="application/json,.json"
+              aria-label="JSON-Datei wählen"
+              className="mt-[8px]"
+              onChange={async (e) => { const f = e.target.files?.[0]; if (f) { setText(await f.text()); run.reset(); } }}
+            />
+            {parseError && <span className="field-error">{parseError}</span>}
+          </div>
+          {preview && (
+            <div className="admin-field" role="status">
+              <span className="admin-label">Ergebnis der Prüfung</span>
+              <p>
+                {preview.added.length} neu, {preview.updated.length} werden ergänzt, {preview.unchanged.length} bleiben wie sie sind.
+              </p>
+              {preview.added.length > 0 && <p className="admin-hint">Neu: {preview.added.join(", ")}</p>}
+              {preview.updated.length > 0 && (
+                <p className="admin-hint">Ergänzt: {preview.updated.map((u) => `${u.name} (${u.changes.join(", ")})`).join("; ")}</p>
+              )}
+            </div>
+          )}
+        </div>
+      </ModalBody>
+      <ModalFooter>
+        <button type="button" onClick={onClose} className="btn-ghost">Abbrechen</button>
+        {preview && preview.added.length + preview.updated.length > 0 ? (
+          <button type="button" disabled={run.isPending} className="btn-primary" onClick={() => submit(true)}>
+            <Save size={13} />{run.isPending ? "Übernimmt…" : "Übernehmen"}
+          </button>
+        ) : (
+          <button type="button" disabled={run.isPending || !text.trim()} className="btn-primary" onClick={() => submit(false)}>
+            <Search size={13} />{run.isPending ? "Prüft…" : "Prüfen"}
+          </button>
+        )}
+      </ModalFooter>
+    </Modal>
   );
 }
 
